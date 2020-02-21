@@ -1,0 +1,24 @@
+{
+  "name": "bacheloroppgave2020_backend",
+  "version": "1.0.0",
+  "description": "NodeJS/Express server for the project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rany-94/Bacheloroppgave2020_Backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rany-94/Bacheloroppgave2020_Backend/issues"
+  },
+  "homepage": "https://github.com/rany-94/Bacheloroppgave2020_Backend#readme",
+  "dependencies": {
+    "config": "^3.2.5",
+    "express": "^4.17.1",
+    "mongoose": "^5.9.1"
+  }
+}
