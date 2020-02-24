@@ -10,7 +10,7 @@ paths:
     get:
       description: Returns a specific product
       responses:
-        "200":
+        200:
           description: A JSON object representing the product
           content:
             application/json:
@@ -30,6 +30,18 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Product"
+    post:
+      summary: Add a new product
+      description: Use to add a new product
+      requestBody:
+        $ref: "#/components/requestBodies/Product"
+      responses:
+        200:
+          description: Returns the new product with corresponding ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
 
 components:
   schemas:
@@ -84,3 +96,57 @@ components:
             example:
               displayName: Maximum players
               value: "4"
+  requestBodies:
+    Product:
+      description: A JSON object containing product information
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Playstation 4
+              category:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: 5e539c042f9afe16e09ca244
+                  name:
+                    type: string
+                    example: Gaming Consoles
+              entities:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    identifier:
+                      type: string
+                    availableForRental:
+                      type: boolean
+                    remarks:
+                      type: string
+                  example:
+                    identifier: PS4_1
+                    availableForRental: false
+                    remarks: Scratches
+              numberOfLoans:
+                type: number
+                example: 10
+              description:
+                type: string
+                example: A Playstation 4 console
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    displayName:
+                      type: string
+                    value:
+                      type: string
+                  example:
+                    displayName: Maximum players
+                    value: "4"
