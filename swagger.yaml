@@ -1,0 +1,73 @@
+openapi: 3.0.0
+info:
+  title: Loan-app API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3900/api
+
+paths:
+  /products:
+    get:
+      summary: Returns a list of all products
+      description: Use to request all products
+      responses:
+        200:
+          description: A JSON array of procuts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: 5e539c042f9afe16e09ca244
+                  name:
+                    type: string
+                    example: Playstation 4
+                  category:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 5e539c042f9afe16e09ca244
+                      name:
+                        type: string
+                        example: John Smith
+                      entities:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            identifier:
+                              type: string
+                            availableForRental:
+                              type: boolean
+                            remarks:
+                              type: string
+                          example:
+                            - identifier: PS4_1
+                              availableForRental: false
+                              remarks: Scratches
+                            - identifier: PS4_2
+                              availableForRental: true
+                              remarks:
+                  numOfLoans:
+                    type: number
+                    example: 10
+                  description:
+                    type: string
+                    example: A Playstation 4 console
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        displayName:
+                          type: string
+                        value:
+                          type: string
+                      example:
+                        - displayName: Maximum players
+                          value: 4
+                        - displayName: Minimum players
+                          value: 1
