@@ -1,10 +1,12 @@
 const express = require("express");
 
+const requestLogger = require("../middleware/logger");
 const docs = require("../routes/docs");
 const products = require("../routes/products");
 
 module.exports = function(app) {
   app.use(express.json());
+  app.use(requestLogger);
 
   //Mount routes middleware
   app.use("/api", docs);
