@@ -8,6 +8,13 @@ servers:
 paths:
   /products/{id}:
     get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            minimum: 24
       description: Returns a specific product
       responses:
         200:
@@ -16,6 +23,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+        400:
+          description: Invalid ID. The ID must be a valid MongoDB ID.
+        404:
+          description: The product with the specified ID was not found
 
   /products:
     get:
