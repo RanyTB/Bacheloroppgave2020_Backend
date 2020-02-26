@@ -25,7 +25,7 @@ function validateProduct(product) {
         })
       )
       .required(),
-    numberOfLoans: Joi.number(),
+    numberOfLoans: Joi.number().min(0),
     description: Joi.string().required(),
     details: Joi.array()
       .items(
@@ -68,6 +68,7 @@ const productSchema = new Schema({
   ],
   numberOfLoans: {
     type: Number,
+    min: 0,
     default: 0
   },
   description: {
