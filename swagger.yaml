@@ -47,6 +47,29 @@ paths:
         404:
           description: Product was not found
 
+    put:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            minimum: 24
+      requestBody:
+        $ref: "#/components/requestBodies/Product"
+      description: Update an existing product
+      responses:
+        "200":
+          description: Returns the updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          description: Invalid product in request body
+        "404":
+          description: Product with given ID was not found
+
   /products:
     get:
       summary: Returns a list of all products
