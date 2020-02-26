@@ -28,6 +28,25 @@ paths:
         404:
           description: The product with the specified ID was not found
 
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            minimum: 24
+      description: Deletes a product by id
+      responses:
+        200:
+          description: Returns a JSON object representing the deleted product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        404:
+          description: Product was not found
+
   /products:
     get:
       summary: Returns a list of all products
