@@ -11,7 +11,6 @@ describe("validateObjectId middleware", () => {
 
   it("should call next() if ObjectID is valid", () => {
     const validObjectId = mongoose.Types.ObjectId().toHexString();
-
     const req = {
       params: {
         id: validObjectId
