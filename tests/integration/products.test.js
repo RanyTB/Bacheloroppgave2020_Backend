@@ -1,4 +1,4 @@
-let server;
+const server = require("../../index");
 const mongoose = require("mongoose");
 const request = require("supertest");
 const { Product } = require("../../models/product");
@@ -7,7 +7,7 @@ let exampleProduct;
 let exampleId1 = mongoose.Types.ObjectId();
 let exampleId2 = mongoose.Types.ObjectId();
 
-setExampleProduct = () => {
+setDefaultExampleProduct = () => {
   exampleProduct = {
     name: "ValidName",
     category: {
@@ -48,15 +48,28 @@ addTwoExampleProducts = async () => {
   await exampleProduct2.save();
 };
 
+expectProductPropertiesInResponse = res => {
+  const properties = [
+    "name",
+    "category",
+    "entities",
+    "numberOfLoans",
+    "description",
+    "details"
+  ];
+
+  properties.map(property => {
+    expect(res.body).toHaveProperty(property);
+  });
+};
+
 describe("/api/products", () => {
   beforeEach(async () => {
-    server = require("../../index");
-    setExampleProduct();
+    setDefaultExampleProduct();
     await addTwoExampleProducts();
   });
   afterEach(async () => {
-    await Product.remove({});
-    await server.close();
+    await Product.deleteMany({});
   });
 
   describe("GET /", () => {
@@ -73,19 +86,7 @@ describe("/api/products", () => {
     it("should return one product", async () => {
       const res = await request(server).get(`/api/products/${exampleId1}`);
       expect(res.status).toBe(200);
-
-      const properties = [
-        "name",
-        "category",
-        "entities",
-        "numberOfLoans",
-        "description",
-        "details"
-      ];
-
-      properties.map(property => {
-        expect(res.body).toHaveProperty(property);
-      });
+      expectProductPropertiesInResponse(res);
     });
 
     it("should return 400 if product ID is invalid", async () => {
@@ -147,6 +148,39 @@ describe("/api/products", () => {
       delete exampleProduct.details;
       res = await exec();
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe("PUT /:id", () => {
+    let nameAfterUpdate;
+
+    const exec = () => {
+      exampleProduct.name = nameAfterUpdate;
+
+      return request(server)
+        .put(`/api/products/${exampleId1}`)
+        .send({
+          ...exampleProduct
+        });
+    };
+
+    it("should return return 400 if product ID is invalid", async () => {
+      const res = await request(server).put(`/api/products/invalidID`);
+      expect(res.status).toBe(400);
+    });
+    it("should return 400 if product is invalid", async () => {
+      nameAfterUpdate = "";
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return updated product", async () => {
+      nameAfterUpdate = "updatedName";
+      const res = await exec();
+
+      expect(res.status).toBe(200);
+      expect(res.body.name).toEqual(nameAfterUpdate);
+      expectProductPropertiesInResponse(res);
     });
   });
 });
