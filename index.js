@@ -5,11 +5,7 @@ const app = express();
 require("./startup/db")();
 //Routes
 require("./startup/routes")(app);
+//Server
+require("./startup/server")(app);
 
-const port = process.env.PORT || 3900;
-
-const server = app.listen(port, () => {
-  console.log("App listening on port " + port);
-});
-
-module.exports = server; //Exported for integration testing
+module.exports = app; //Exported for integration testing
