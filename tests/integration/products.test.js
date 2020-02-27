@@ -152,13 +152,19 @@ describe("/api/products", () => {
   });
 
   describe("PUT /:id", () => {
+    let idToBeUpdated;
     let nameAfterUpdate;
+
+    beforeEach(() => {
+      nameAfterUpdate = "updatedName";
+      idToBeUpdated = exampleId1;
+    });
 
     const exec = () => {
       exampleProduct.name = nameAfterUpdate;
 
       return request(server)
-        .put(`/api/products/${exampleId1}`)
+        .put(`/api/products/${idToBeUpdated}`)
         .send({
           ...exampleProduct
         });
@@ -168,18 +174,52 @@ describe("/api/products", () => {
       const res = await request(server).put(`/api/products/invalidID`);
       expect(res.status).toBe(400);
     });
+
     it("should return 400 if product is invalid", async () => {
       nameAfterUpdate = "";
       const res = await exec();
       expect(res.status).toBe(400);
     });
 
+    it("Should return 404 if product is not found", async () => {
+      idToBeUpdated = mongoose.Types.ObjectId();
+      const res = await exec();
+
+      expect(res.status).toBe(404);
+    });
+
     it("should return updated product", async () => {
-      nameAfterUpdate = "updatedName";
       const res = await exec();
 
       expect(res.status).toBe(200);
       expect(res.body.name).toEqual(nameAfterUpdate);
+      expectProductPropertiesInResponse(res);
+    });
+  });
+
+  describe("DELETE /:id", () => {
+    it("should return return 400 if product ID is invalid", async () => {
+      const res = await request(server).delete(`/api/products/invalidID`);
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 404 if product not found", async () => {
+      validId = mongoose.Types.ObjectId();
+      const res = await request(server).delete(`/api/products/${validId}`);
+
+      expect(res.status).toBe(404);
+    });
+
+    it("should delete product if found", async () => {
+      let res = await request(server).delete(`/api/products/${exampleId1}`);
+      expect(res.status).toBe(200);
+
+      res = await request(server).get(`/api/products/${exampleId1}`);
+      expect(res.status).toBe(404);
+    });
+
+    it("should return deleted product", async () => {
+      const res = await request(server).delete(`/api/products/${exampleId1}`);
       expectProductPropertiesInResponse(res);
     });
   });
