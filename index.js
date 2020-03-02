@@ -1,13 +1,12 @@
 const express = require("express");
 const app = express();
+require('express-async-errors')
 
 //DB
 require("./startup/db")();
 //Routes
 require("./startup/routes")(app);
+//Server
+require("./startup/server")(app);
 
-const port = process.env.PORT || 3900;
-
-const server = app.listen(port, () => {
-  console.log("App listening on port " + port);
-});
+module.exports = app; //Exported for integration testing

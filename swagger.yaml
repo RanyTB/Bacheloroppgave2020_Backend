@@ -1,0 +1,205 @@
+openapi: 3.0.0
+info:
+  title: Loan-app API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3900/api
+
+paths:
+  /products/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            minimum: 24
+      description: Returns a specific product
+      responses:
+        200:
+          description: A JSON object representing the product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        400:
+          description: Invalid ID. The ID must be a valid MongoDB ID.
+        404:
+          description: The product with the specified ID was not found
+
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            minimum: 24
+      description: Deletes a product by id
+      responses:
+        200:
+          description: Returns a JSON object representing the deleted product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        404:
+          description: Product was not found
+
+    put:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            minimum: 24
+      requestBody:
+        $ref: "#/components/requestBodies/Product"
+      description: Update an existing product
+      responses:
+        "200":
+          description: Returns the updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          description: Invalid product in request body
+        "404":
+          description: Product with given ID was not found
+
+  /products:
+    get:
+      summary: Returns a list of all products
+      description: Use to request all products
+      responses:
+        200:
+          description: A JSON array of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      summary: Add a new product
+      description: Use to add a new product
+      requestBody:
+        $ref: "#/components/requestBodies/Product"
+      responses:
+        200:
+          description: Returns the new product with corresponding ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e539c042f9afe16e09ca244
+        name:
+          type: string
+          example: Playstation 4
+        category:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e539c042f9afe16e09ca244
+            name:
+              type: string
+              example: Gaming Consoles
+        entities:
+          type: array
+          items:
+            type: object
+            properties:
+              identifier:
+                type: string
+              availableForRental:
+                type: boolean
+              remarks:
+                type: string
+            example:
+              identifier: PS4_1
+              availableForRental: false
+              remarks: Scratches
+        numberOfLoans:
+          type: number
+          example: 10
+        description:
+          type: string
+          example: A Playstation 4 console
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              displayName:
+                type: string
+              value:
+                type: string
+            example:
+              displayName: Maximum players
+              value: "4"
+  requestBodies:
+    Product:
+      description: A JSON object containing product information
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: Playstation 4
+              category:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: 5e539c042f9afe16e09ca244
+                  name:
+                    type: string
+                    example: Gaming Consoles
+              entities:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    identifier:
+                      type: string
+                    availableForRental:
+                      type: boolean
+                    remarks:
+                      type: string
+                  example:
+                    identifier: PS4_1
+                    availableForRental: false
+                    remarks: Scratches
+              numberOfLoans:
+                type: number
+                example: 10
+              description:
+                type: string
+                example: A Playstation 4 console
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    displayName:
+                      type: string
+                    value:
+                      type: string
+                  example:
+                    displayName: Maximum players
+                    value: "4"

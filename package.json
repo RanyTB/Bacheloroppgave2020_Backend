@@ -4,7 +4,7 @@
   "description": "NodeJS/Express server for the project",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --runInBand --watchAll --verbose --coverage"
   },
   "repository": {
     "type": "git",
@@ -17,8 +17,20 @@
   },
   "homepage": "https://github.com/rany-94/Bacheloroppgave2020_Backend#readme",
   "dependencies": {
+    "@hapi/joi": "^17.1.0",
     "config": "^3.2.5",
     "express": "^4.17.1",
-    "mongoose": "^5.9.1"
+    "express-async-errors": "^3.1.1",
+    "joi-objectid": "^3.0.1",
+    "mongoose": "^5.9.1",
+    "swagger-jsdoc": "^3.5.0",
+    "swagger-ui-express": "^4.1.3",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.3",
+    "jest": "^25.1.0",
+    "mock-express-response": "^0.2.2",
+    "supertest": "^4.0.2"
   }
 }
