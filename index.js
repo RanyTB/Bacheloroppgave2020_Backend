@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+require('express-async-errors')
 
 //DB
 require("./startup/db")();
