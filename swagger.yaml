@@ -8,6 +8,7 @@ servers:
 paths:
   /products/{id}:
     get:
+      summary: Returns a product with the given id
       parameters:
         - in: path
           name: id
@@ -29,6 +30,7 @@ paths:
           description: The product with the specified ID was not found
 
     delete:
+      summary: Deletes a product with given id
       parameters:
         - in: path
           name: id
@@ -36,7 +38,7 @@ paths:
           schema:
             type: string
             minimum: 24
-      description: Deletes a product by id
+      description: Use to delete a product by id
       responses:
         200:
           description: Returns a JSON object representing the deleted product
@@ -44,10 +46,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+        400:
+          description: Invalid ID. The ID must be a valid MongoDB ID.
         404:
           description: Product was not found
 
     put:
+      summary: Updates an existing product with the given id
       parameters:
         - in: path
           name: id
