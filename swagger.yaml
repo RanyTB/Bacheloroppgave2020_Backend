@@ -8,13 +8,9 @@ servers:
 paths:
   /products/{id}:
     get:
+      summary: Returns a product with the given id
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            minimum: 24
+        - $ref: "#/components/parameters/ObjectId"
       description: Returns a specific product
       responses:
         200:
@@ -29,14 +25,10 @@ paths:
           description: The product with the specified ID was not found
 
     delete:
+      summary: Deletes a product with given id
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            minimum: 24
-      description: Deletes a product by id
+        - $ref: "#/components/parameters/ObjectId"
+      description: Use to delete a product by id
       responses:
         200:
           description: Returns a JSON object representing the deleted product
@@ -44,17 +36,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+        400:
+          description: Invalid ID. The ID must be a valid MongoDB ID.
         404:
           description: Product was not found
 
     put:
+      summary: Updates an existing product with the given id
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            minimum: 24
+        - $ref: "#/components/parameters/ObjectId"
       requestBody:
         $ref: "#/components/requestBodies/Product"
       description: Update an existing product
@@ -203,3 +193,13 @@ components:
                   example:
                     displayName: Maximum players
                     value: "4"
+  parameters:
+    ObjectId:
+      name: ObjectId
+      in: path
+      description: Valid mongoose Object Id
+      required: true
+      schema:
+        type: string
+        minimum: 24
+        example: 5e539c042f9afe16e09ca244
