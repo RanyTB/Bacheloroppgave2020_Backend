@@ -6,6 +6,52 @@ servers:
   - url: http://localhost:3900/api
 
 paths:
+  /categories/{id}:
+    get:
+      summary: Returns a category with the given id
+      description: Use to get a category by id
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      responses:
+        "200":
+          description: Returns a category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          description: Invalid ID. The ID must be a valid MongoDB ID.
+        "404":
+          description: Category with given ID not found
+  /categories:
+    get:
+      summary: Returns all categories
+      description: Use to get all categories
+      responses:
+        "200":
+          description: A JSON array with all categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      summary: Insert a new category
+      description: Use to insert a new category. The category may contain a parent reference.
+      requestBody:
+        $ref: "#/components/requestBodies/Category"
+      responses:
+        "200":
+          description: A JSON object with the new category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Categgitory"
+        "400":
+          description: Invalid category format.
+        "404":
+          description: Parent with provided parent id does not exist
   /products/{id}:
     get:
       summary: Returns a product with the given id
@@ -103,6 +149,24 @@ paths:
 
 components:
   schemas:
+    Category:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e539c042f9afe16e09ca244
+        name:
+          type: string
+          example: PS4
+        parent:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e539c042f9afe16e09ca244
+            name:
+              type: string
+              example: Games
     Product:
       type: object
       properties:
@@ -155,6 +219,29 @@ components:
               displayName: Maximum players
               value: "4"
   requestBodies:
+    Category:
+      description: A JSON object containing category information
+      required: true
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - type: object
+                properties:
+                  name:
+                    type: string
+                    example: PS4
+                  parent:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 5e539c042f9afe16e09ca244
+              - type: object
+                properties:
+                  name:
+                    type: string
+                    example: PS4
     Product:
       description: A JSON object containing product information
       required: true
