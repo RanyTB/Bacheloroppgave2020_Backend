@@ -120,7 +120,6 @@ paths:
           description: Invalid product in request body
         "404":
           description: Product with given ID was not found
-
   /products:
     get:
       summary: Returns a list of all products
