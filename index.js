@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
+require("express-async-errors");
 
+//CORS
+require("./startup/cors")(app);
 //DB
 require("./startup/db")();
 //Routes

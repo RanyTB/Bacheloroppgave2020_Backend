@@ -18,16 +18,12 @@ router.get("/:id", validateObjectID, async (req, res) => {
 
 router.post("/", async (req, res) => {
   const { error } = validateProduct(req.body);
-  if (error) return res.status(400).send(error.message);
+  if (error) return res.status(400).send(error); //send entire message to client?
 
   const newProduct = new Product(req.body);
 
-  try {
-    await newProduct.save();
-    res.send(newProduct);
-  } catch (error) {
-    res.status(400).send("Could not register product: " + error.message);
-  }
+  await newProduct.save();
+  res.send(newProduct);
 });
 
 router.delete("/:id", validateObjectID, async (req, res) => {
@@ -44,17 +40,13 @@ router.put("/:id", validateObjectID, async (req, res) => {
   const product = await Product.findById(req.params.id);
   if (!product) return res.status(404).send("Product not found");
 
-  try {
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { runValidators: true, new: true }
-    );
+  const updatedProduct = await Product.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { runValidators: true, new: true }
+  );
 
-    res.send(updatedProduct);
-  } catch (error) {
-    res.status(400).send("Could not update product: ", error.message);
-  }
+  res.send(updatedProduct);
 });
 
 module.exports = router;
