@@ -5,9 +5,15 @@ info:
 servers:
   - url: http://localhost:3900/api
 
+tags:
+  - name: Categories
+  - name: Products
+
 paths:
   /categories/{id}:
     get:
+      tags:
+        - Categories
       summary: Returns a category with the given id
       description: Use to get a category by id
       parameters:
@@ -23,8 +29,30 @@ paths:
           description: Invalid ID. The ID must be a valid MongoDB ID.
         "404":
           description: Category with given ID not found
+    put:
+      tags:
+        - Categories
+      summary: Update existing category
+      description: Used to update an existing category.
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        $ref: "#/components/requestBodies/Category"
+      responses:
+        "200":
+          description: Category successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          description: Invalid category in request body.
+        "404":
+          description: The category does not exist.
   /categories:
     get:
+      tags:
+        - Categories
       summary: Returns all categories
       description: Use to get all categories
       responses:
@@ -37,8 +65,10 @@ paths:
                 items:
                   $ref: "#/components/schemas/Category"
     post:
+      tags:
+        - Categories
       summary: Insert a new category
-      description: Use to insert a new category. The category may contain a parent reference.
+      description: Use to insert a new category. The category may contain a parent reference. Note that only one level of subcategorization allowed.
       requestBody:
         $ref: "#/components/requestBodies/Category"
       responses:
@@ -47,13 +77,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Categgitory"
+                $ref: "#/components/schemas/Category"
         "400":
-          description: Invalid category format.
+          description: Invalid category format or parent is not a main category.
         "404":
           description: Parent with provided parent id does not exist
+
   /products/{id}:
     get:
+      tags:
+        - Products
       summary: Returns a product with the given id
       parameters:
         - $ref: "#/components/parameters/ObjectId"
@@ -71,6 +104,8 @@ paths:
           description: The product with the specified ID was not found
 
     delete:
+      tags:
+        - Products
       summary: Deletes a product with given id
       parameters:
         - $ref: "#/components/parameters/ObjectId"
@@ -88,6 +123,8 @@ paths:
           description: Product was not found
 
     put:
+      tags:
+        - Products
       summary: Updates an existing product with the given id
       parameters:
         - $ref: "#/components/parameters/ObjectId"
@@ -107,6 +144,8 @@ paths:
           description: Product with given ID was not found
   /products:
     get:
+      tags:
+        - Products
       summary: Returns a list of all products
       description: Use to request all products
       responses:
@@ -119,6 +158,8 @@ paths:
                 items:
                   $ref: "#/components/schemas/Product"
     post:
+      tags:
+        - Products
       summary: Add a new product
       description: Use to add a new product
       requestBody:
@@ -141,7 +182,7 @@ components:
           example: 5e539c042f9afe16e09ca244
         name:
           type: string
-          example: PS4
+          example: Game Consoles
         parent:
           type: object
           properties:
@@ -150,7 +191,7 @@ components:
               example: 5e539c042f9afe16e09ca244
             name:
               type: string
-              example: Games
+              example: Gaming
     Product:
       type: object
       properties:
@@ -204,28 +245,23 @@ components:
               value: "4"
   requestBodies:
     Category:
-      description: A JSON object containing category information
+      description: A JSON object containing category information. **Parent field is optional**
       required: true
       content:
         application/json:
           schema:
-            oneOf:
-              - type: object
+            type: object
+            properties:
+              name:
+                type: string
+                example: Game Consoles
+              parent:
+                type: object
                 properties:
-                  name:
+                  _id:
                     type: string
-                    example: PS4
-                  parent:
-                    type: object
-                    properties:
-                      _id:
-                        type: string
-                        example: 5e539c042f9afe16e09ca244
-              - type: object
-                properties:
-                  name:
-                    type: string
-                    example: PS4
+                    example: 5e539c042f9afe16e09ca244
+
     Product:
       description: A JSON object containing product information
       required: true
