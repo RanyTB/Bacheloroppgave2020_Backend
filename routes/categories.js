@@ -10,7 +10,7 @@ router.get("/", async (req, res) => {
   res.send(categories);
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", validateObjectId, async (req, res) => {
   const category = await Category.findById(req.params.id);
   if (!category) return res.status(404).send("Category not found");
 
@@ -36,14 +36,14 @@ router.put("/:id", validateObjectId, validateCategory, async (req, res) => {
       name: category.name,
       parent: category.parent
     },
-    { runValidators: true, new: true, useFindAndModify: false }
+    { runValidators: true, new: true }
   );
 
   res.send(category);
 });
 
 router.delete("/:id", validateObjectId, async (req, res) => {
-  const deleted = Category.findByIdAndRemove(req.params.id);
+  const deleted = await Category.findByIdAndRemove(req.params.id);
   if (!deleted) return res.status(404).send("Existing category not found");
 
   res.send(deleted);
