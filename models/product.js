@@ -10,8 +10,7 @@ function validateProduct(product) {
       .max(255)
       .required(),
     category: Joi.object({
-      _id: Joi.objectId(),
-      name: Joi.string()
+      _id: Joi.objectId().required()
     }).required(),
     entities: Joi.array()
       .items(
@@ -47,11 +46,15 @@ const productSchema = new Schema({
     maxlength: 255,
     required: true
   },
-  category: new Schema({
-    name: {
-      type: String
-    }
-  }),
+  category: {
+    type: new Schema({
+      name: {
+        type: String,
+        required: true
+      }
+    }),
+    required: true
+  },
   entities: [
     {
       identifier: {
