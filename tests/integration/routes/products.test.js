@@ -1,7 +1,7 @@
-const server = require("../../index");
+const server = require("../../../index");
 const mongoose = require("mongoose");
 const request = require("supertest");
-const { Product } = require("../../models/product");
+const { Product } = require("../../../models/product");
 
 let exampleProduct;
 let exampleId1 = mongoose.Types.ObjectId();
@@ -198,7 +198,7 @@ describe("/api/products", () => {
   });
 
   describe("DELETE /:id", () => {
-    it("should return return 400 if product ID is invalid", async () => {
+    it("should return 400 if product ID is invalid", async () => {
       const res = await request(server).delete(`/api/products/invalidID`);
       expect(res.status).toBe(400);
     });

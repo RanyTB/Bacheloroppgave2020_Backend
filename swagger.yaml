@@ -86,6 +86,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Product"
 
+  /users:
+    post:
+      summary: Add a new user
+      description: Use to add a new user
+      requestBody:
+        $ref: "#/components/requestBodies/User"
+      responses:
+        200:
+          description: Return the new user with its corresponding ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
 components:
   schemas:
     Product:
@@ -139,6 +153,25 @@ components:
             example:
               displayName: Maximum players
               value: "4"
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        firstName:
+          type: string
+          example: Josh
+        lastName:
+          type: string
+          example: Johnson
+        email:
+          type: string
+          example: Josh_Johnson@gmail.com
+        phone:
+          type: string
+          example: "48927401"
+
   requestBodies:
     Product:
       description: A JSON object containing product information
@@ -193,6 +226,30 @@ components:
                   example:
                     displayName: Maximum players
                     value: "4"
+    User:
+      description: A JSON object containing user
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              firstName:
+                type: string
+                example: Josh
+              lastName:
+                type: string
+                example: Johnson
+              email:
+                type: string
+                example: Josh_Johnson@gmail.com
+              password:
+                type: string
+                example: PasswordForJosh_Johnson
+              phone:
+                type: string
+                example: "48927401"
+
   parameters:
     ObjectId:
       name: ObjectId
