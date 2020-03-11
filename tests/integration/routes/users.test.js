@@ -1,64 +1,54 @@
 const request = require("supertest");
 const mongoose = require("mongoose");
 const { User } = require("../../../models/user");
-const server = require("../../../index");
+const app = require("../../../index");
 const express = require("express");
 
-server.use(express.json());
+app.use(express.json());
 
-let exampleUser;
-let exampleUserId = mongoose.Types.ObjectId();
-let exampleId1 = mongoose.Types.ObjectId();
+let exampleUserId;
 
-let exampleAdmin;
-
-exampleAdmin = {
-  firstName: "firstName1",
-  lastName: "lastName1",
-  email: "administrator@address1.com",
-  password: "password1",
-  phone: "11111111"
+let exampleAdmin = {
+  firstName: "adminFirstName",
+  lastName: "adminLastName",
+  email: "administrator@address.com",
+  password: "adminPassword",
+  phone: "22222222"
 };
 
-let exampleUser2 = {
-  firstName: "firstName1",
-  lastName: "lastName1",
-  email: "exampleUser2@address1.com",
-  password: "password1",
+let exampleUser = {
+  firstName: "firstName",
+  lastName: "lastName",
+  email: "exampleUser@address.com",
+  password: "password",
   phone: "11111111"
 };
 
 addExampleUser = async () => {
-  exampleUser = {
-    firstName: "firstName1",
-    lastName: "lastName1",
-    email: "email@address1.com",
-    password: "password1",
-    phone: "11111111"
-  };
-
   let user = new User({
-    _id: exampleUserId,
     ...exampleUser
   });
+  exampleUserId = user.id;
 
   await user.save();
 };
 
-let validAdminJWTToken;
-let admin;
-
 describe("/api/users", () => {
+  let validAdminJWTToken;
+  let validAuthNonAdminUserJWTToken;
+  let admin;
+
   beforeEach(async () => {
     admin = new User({
-      _id: exampleId1,
       ...exampleAdmin,
       isAdmin: true
     });
 
-    admin.save();
-
     validAdminJWTToken = admin.generateAuthToken();
+
+    validAuthNonAdminUserJWTToken = new User({
+      ...exampleUser
+    }).generateAuthToken();
   });
   afterEach(async () => {
     await User.remove({});
@@ -83,21 +73,36 @@ describe("/api/users", () => {
         }
       ]);
 
-      const res = await request(server)
+      const res = await request(app)
         .get("/api/users")
         .set("x-auth-token", validAdminJWTToken);
 
       expect(res.status).toBe(200);
-      expect(res.body.length).toBe(3); //requires admin functionality, so admin user is also saved in the test database.
+      expect(res.body.length).toBe(2);
       expect(res.body.some(g => g.email === "email@address1.com")).toBeTruthy();
       expect(res.body.some(g => g.email === "email@address2.com")).toBeTruthy();
+    });
+  });
+
+  describe("GET /me", () => {
+    beforeEach(async () => {
+      await admin.save();
+    });
+
+    it("should return the currently authenticated user", async () => {
+      const res = await request(app)
+        .get("/api/users")
+        .set("x-auth-token", validAdminJWTToken);
+
+      expect(res.status).toBe(200);
+      expect(res.body.some(g => g.email === exampleAdmin.email)).toBeTruthy();
     });
   });
   describe("GET /:id", () => {
     it("should return a user when a valid ID is passed", async () => {
       await addExampleUser();
 
-      const res = await request(server)
+      const res = await request(app)
         .get(`/api/users/${exampleUserId}`)
         .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(200);
@@ -105,7 +110,7 @@ describe("/api/users", () => {
     });
 
     it("should return 400 if user ID is invalid", async () => {
-      const res = await request(server)
+      const res = await request(app)
         .get("/api/users/invalidID")
         .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(400);
@@ -113,7 +118,7 @@ describe("/api/users", () => {
 
     it("should return 404 if user does not exist", async () => {
       const validID = mongoose.Types.ObjectId();
-      const res = await request(server)
+      const res = await request(app)
         .get(`/api/users/${validID}`)
         .set("x-auth-token", validAdminJWTToken);
 
@@ -125,11 +130,11 @@ describe("/api/users", () => {
     let user;
 
     beforeEach(() => {
-      user = { ...exampleUser2 };
+      user = { ...exampleUser };
     });
 
     const exec = () => {
-      return request(server)
+      return request(app)
         .post("/api/users")
         .send({
           ...user
@@ -181,7 +186,6 @@ describe("/api/users", () => {
     it("Should return 400 if user is already registered", async () => {
       await exec();
       res = await exec();
-      console.log(user);
       expect(res.status).toBe(400);
     });
   });
@@ -189,10 +193,9 @@ describe("/api/users", () => {
   describe("PUT /:id", () => {
     let user;
     let id;
-    console.log(exampleAdmin);
 
     beforeEach(async () => {
-      user = { ...exampleUser2 };
+      user = { ...exampleUser };
       const userObject = new User({ ...user });
       id = userObject.id;
 
@@ -200,7 +203,7 @@ describe("/api/users", () => {
     });
 
     const exec = () => {
-      return request(server)
+      return request(app)
         .put(`/api/users/${id}`)
         .send({
           ...user
@@ -215,20 +218,18 @@ describe("/api/users", () => {
     });
 
     it("should return 404 when the user to be updated doesn't exist", async () => {
-      id = exampleId1;
+      id = mongoose.Types.ObjectId();
       res = await exec();
       expect(res.status).toBe(404);
     });
 
     it("should return 400 when name is not provided", async () => {
-      id = exampleId1;
       user.name = "";
       res = await exec();
       expect(res.status).toBe(400);
     });
 
     it("should return 400 when email is not provided", async () => {
-      id = exampleId1;
       user.email = "";
       res = await exec();
       expect(res.status).toBe(400);
@@ -236,8 +237,32 @@ describe("/api/users", () => {
   });
 
   describe("DELETE /:id", () => {
+    it("should return 401 if no JWT token is provided", async () => {
+      validAdminJWTToken = "";
+      const res = await request(app)
+        .delete(`/api/users/${exampleUserId}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      validAdminJWTToken = "invalid";
+      let res = await request(app)
+        .delete(`/api/users/${exampleUserId}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if the authenticated user is not an admin", async () => {
+      validAdminJWTToken = validAuthNonAdminUserJWTToken;
+      let res = await request(app)
+        .delete(`/api/users/${exampleUserId}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(403);
+    });
+
     it("should return 400 if product ID is invalid", async () => {
-      const res = await request(server)
+      const res = await request(app)
         .delete(`/api/users/invalidID`)
         .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(400);
@@ -245,7 +270,7 @@ describe("/api/users", () => {
 
     it("should return 404 if user not found", async () => {
       validId = mongoose.Types.ObjectId();
-      const res = await request(server)
+      const res = await request(app)
         .delete(`/api/users/${validId}`)
         .set("x-auth-token", validAdminJWTToken);
 
@@ -255,12 +280,12 @@ describe("/api/users", () => {
     it("should delete user if found", async () => {
       await addExampleUser();
 
-      let res = await request(server)
+      let res = await request(app)
         .delete(`/api/users/${exampleUserId}`)
         .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(200);
 
-      res = await request(server)
+      res = await request(app)
         .get(`/api/users/${exampleUserId}`)
         .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(404);
@@ -269,7 +294,7 @@ describe("/api/users", () => {
     it("should return deleted user", async () => {
       await addExampleUser();
 
-      const res = await request(server)
+      const res = await request(app)
         .delete(`/api/users/${exampleUserId}`)
         .set("x-auth-token", validAdminJWTToken);
 

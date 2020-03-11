@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 
-router.get("/", [auth, admin], async (req, res) => {
+router.get("/", auth, admin, async (req, res) => {
   const users = await User.find();
   res.send(users);
 });
@@ -18,7 +18,7 @@ router.get("/me", auth, async (req, res) => {
   res.send(user);
 });
 
-router.get("/:id", [auth, admin, validateObjectID], async (req, res) => {
+router.get("/:id", auth, admin, validateObjectID, async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).send(`User ${req.params.id}`);
 
@@ -49,13 +49,13 @@ router.post("/", async (req, res) => {
   );
 });
 
-router.delete("/:id", [auth, admin, validateObjectID], async (req, res) => {
+router.delete("/:id", auth, admin, validateObjectID, async (req, res) => {
   const user = await User.findByIdAndDelete(req.params.id);
   if (!user) return res.status(404).send("Cannot find user with given ID");
   res.send(user);
 });
 
-router.put("/:id", [auth, admin, validateObjectID], async (req, res) => {
+router.put("/:id", auth, admin, validateObjectID, async (req, res) => {
   const { error } = validateUser(req.body);
   if (error)
     return res
@@ -64,23 +64,22 @@ router.put("/:id", [auth, admin, validateObjectID], async (req, res) => {
 
   const id = req.params.id;
 
-  try {
-    const user = await User.findByIdAndUpdate(
-      id,
-      _.pick(req.body, [
-        "firstName",
-        "lastName",
-        "email",
-        "password",
-        "phone",
-        "isAdmin"
-      ]),
-      { new: true, useFindAndModify: false, runValidators: true }
-    );
-    res.send(user);
-  } catch (ex) {
-    return res.status(404).send("User was not found");
-  }
+  const user = await User.findByIdAndUpdate(
+    id,
+    _.pick(req.body, [
+      "firstName",
+      "lastName",
+      "email",
+      "password",
+      "phone",
+      "isAdmin"
+    ]),
+    { new: true, useFindAndModify: false, runValidators: true }
+  );
+
+  if (!user) return res.status(404).send("User was not found");
+
+  res.send(user);
 });
 
 module.exports = router;

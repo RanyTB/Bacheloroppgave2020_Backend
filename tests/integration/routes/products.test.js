@@ -1,8 +1,9 @@
-const server = require("../../../index");
+const app = require("../../../index");
 const mongoose = require("mongoose");
 const request = require("supertest");
 const { Product } = require("../../../models/product");
 const { Category } = require("../../../models/category");
+const { User } = require("../../../models/user");
 
 let exampleProduct;
 let exampleId1 = mongoose.Types.ObjectId();
@@ -10,6 +11,14 @@ let exampleId2 = mongoose.Types.ObjectId();
 
 let categoryId = mongoose.Types.ObjectId();
 let categoryName = "ExampleCategory";
+
+const exampleUser = {
+  firstName: "firstName1",
+  lastName: "lastName1",
+  email: "email@address1.com",
+  password: "password1",
+  phone: "11111111"
+};
 
 setDefaultExampleProduct = () => {
   exampleProduct = {
@@ -67,11 +76,11 @@ expectProductPropertiesInResponse = res => {
 };
 
 describe("/api/products", () => {
+  let validAdminJWTToken;
+  let validAuthNonAdminUserJWTToken;
+
   beforeAll(async () => {
     await new Category({ _id: categoryId, name: categoryName }).save();
-  });
-  afterAll(async () => {
-    await Category.deleteMany({});
   });
 
   beforeEach(async () => {
@@ -79,37 +88,76 @@ describe("/api/products", () => {
     exampleProduct.category.name = categoryName;
     await addTwoExampleProducts();
     delete exampleProduct.category.name;
+
+    validAdminJWTToken = await new User({
+      ...exampleUser,
+      isAdmin: true
+    }).generateAuthToken();
+
+    validAuthNonAdminUserJWTToken = await new User({
+      ...exampleUser
+    }).generateAuthToken();
   });
 
   afterEach(async () => {
     await Product.deleteMany({});
   });
 
+  afterAll(async () => {
+    await Category.deleteMany({});
+  });
+
   describe("GET /", () => {
+    exec = () => {
+      return request(app)
+        .get("/api/products")
+        .set("x-auth-token", validAuthNonAdminUserJWTToken);
+    };
+
     it("should return all products", async () => {
-      const res = await request(server).get("/api/products");
+      const res = await exec();
       expect(res.status).toBe(200);
       expect(res.body.length).toBe(2);
       expect(res.body.some(p => p.name === "Example 1")).toBeTruthy();
       expect(res.body.some(p => p.name === "Example 2")).toBeTruthy();
     });
+
+    it("should return 401 if no JWT token is provided", async () => {
+      validAuthNonAdminUserJWTToken = "";
+      const res = await exec();
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      validAuthNonAdminUserJWTToken = "invalid";
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
   });
 
   describe("GET /:id", () => {
     it("should return one product", async () => {
-      const res = await request(server).get(`/api/products/${exampleId1}`);
+      console.log(validAuthNonAdminUserJWTToken);
+      const res = await request(app)
+        .get(`/api/products/${exampleId1}`)
+        .set("x-auth-token", validAuthNonAdminUserJWTToken);
+
       expect(res.status).toBe(200);
       expectProductPropertiesInResponse(res);
     });
 
     it("should return 400 if product ID is invalid", async () => {
-      const res = await request(server).get(`/api/products/invalidID`);
+      const res = await request(app)
+        .get(`/api/products/invalidID`)
+        .set("x-auth-token", validAuthNonAdminUserJWTToken);
       expect(res.status).toBe(400);
     });
 
     it("should return 404 if product does not exist", async () => {
       const validID = mongoose.Types.ObjectId();
-      const res = await request(server).get(`/api/products/${validID}`);
+      const res = await request(app)
+        .get(`/api/products/${validID}`)
+        .set("x-auth-token", validAuthNonAdminUserJWTToken);
 
       expect(res.status).toBe(404);
     });
@@ -117,12 +165,31 @@ describe("/api/products", () => {
 
   describe("POST /", () => {
     const exec = () => {
-      return request(server)
+      return request(app)
         .post("/api/products")
         .send({
           ...exampleProduct
-        });
+        })
+        .set("x-auth-token", validAdminJWTToken);
     };
+
+    it("should return 401 if no JWT token is provided", async () => {
+      validAdminJWTToken = "";
+      const res = await exec();
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      validAdminJWTToken = "invalid";
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if the authenticated user is not an admin", async () => {
+      validAdminJWTToken = validAuthNonAdminUserJWTToken;
+      const res = await exec();
+      expect(res.status).toBe(403);
+    });
 
     it("should return new product when product is valid", async () => {
       res = await exec();
@@ -186,15 +253,36 @@ describe("/api/products", () => {
     const exec = () => {
       exampleProduct.name = nameAfterUpdate;
 
-      return request(server)
+      return request(app)
         .put(`/api/products/${idToBeUpdated}`)
         .send({
           ...exampleProduct
-        });
+        })
+        .set("x-auth-token", validAdminJWTToken);
     };
 
+    it("should return 401 if no JWT token is provided", async () => {
+      validAdminJWTToken = "";
+      const res = await exec();
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      validAdminJWTToken = "invalid";
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if the authenticated user is not an admin", async () => {
+      validAdminJWTToken = validAuthNonAdminUserJWTToken;
+      const res = await exec();
+      expect(res.status).toBe(403);
+    });
+
     it("should return return 400 if product ID is invalid", async () => {
-      const res = await request(server).put(`/api/products/invalidID`);
+      const res = await request(app)
+        .put(`/api/products/invalidID`)
+        .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(400);
     });
 
@@ -220,29 +308,64 @@ describe("/api/products", () => {
     });
   });
 
+  //TODO: refactor with exec() function
   describe("DELETE /:id", () => {
+    it("should return 401 if no JWT token is provided", async () => {
+      validAdminJWTToken = "";
+      let res = await request(app)
+        .delete(`/api/products/${exampleId1}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      validAdminJWTToken = "invalid";
+      let res = await request(app)
+        .delete(`/api/products/${exampleId1}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if the authenticated user is not an admin", async () => {
+      validAdminJWTToken = validAuthNonAdminUserJWTToken;
+      let res = await request(app)
+        .delete(`/api/products/${exampleId1}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(403);
+    });
+
     it("should return 400 if product ID is invalid", async () => {
-      const res = await request(server).delete(`/api/products/invalidID`);
+      const res = await request(app)
+        .delete(`/api/products/invalidID`)
+        .set("x-auth-token", validAdminJWTToken);
+
       expect(res.status).toBe(400);
     });
 
     it("should return 404 if product not found", async () => {
       validId = mongoose.Types.ObjectId();
-      const res = await request(server).delete(`/api/products/${validId}`);
-
+      const res = await request(app)
+        .delete(`/api/products/${validId}`)
+        .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(404);
     });
 
     it("should delete product if found", async () => {
-      let res = await request(server).delete(`/api/products/${exampleId1}`);
+      let res = await request(app)
+        .delete(`/api/products/${exampleId1}`)
+        .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(200);
 
-      res = await request(server).get(`/api/products/${exampleId1}`);
+      res = await request(app)
+        .get(`/api/products/${exampleId1}`)
+        .set("x-auth-token", validAdminJWTToken);
       expect(res.status).toBe(404);
     });
 
     it("should return deleted product", async () => {
-      const res = await request(server).delete(`/api/products/${exampleId1}`);
+      const res = await request(app)
+        .delete(`/api/products/${exampleId1}`)
+        .set("x-auth-token", validAdminJWTToken);
       expectProductPropertiesInResponse(res);
     });
   });
