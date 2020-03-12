@@ -109,19 +109,49 @@ describe("/api/users", () => {
   });
 
   describe("GET /me", () => {
+    let currentUserValidJWTToken;
+    let currentUser;
+
     beforeEach(async () => {
-      await admin.save();
+      currentUser = new User({
+        ...exampleUser
+      });
+
+      currentUserValidJWTToken = currentUser.generateAuthToken();
+
+      await currentUser.save();
     });
 
     it("should return the currently authenticated user", async () => {
       const res = await request(app)
-        .get("/api/users")
-        .set("x-auth-token", validAdminJWTToken);
+        .get("/api/users/me")
+        .set("x-auth-token", currentUserValidJWTToken);
 
       expect(res.status).toBe(200);
-      expect(res.body.some(g => g.email === exampleAdmin.email)).toBeTruthy();
+      expect(res.body).toHaveProperty("firstName");
+      expect(res.body).toHaveProperty("lastName");
+      expect(res.body).toHaveProperty("email");
+      expect(res.body).not.toHaveProperty("password");
+      expect(res.body).toHaveProperty("phone");
+    });
+
+    it("should return 401 if no JWT token is provided", async () => {
+      currentUserValidJWTToken = "";
+      const res = await request(app)
+        .get(`/api/users/me`)
+        .set("x-auth-token", currentUserValidJWTToken);
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      currentUserValidJWTToken = "invalid";
+      const res = await request(app)
+        .get(`/api/users/me`)
+        .set("x-auth-token", currentUserValidJWTToken);
+      expect(res.status).toBe(400);
     });
   });
+
   describe("GET /:id", () => {
     it("should return 401 if no JWT token is provided", async () => {
       validAdminJWTToken = "";
