@@ -137,7 +137,6 @@ describe("/api/products", () => {
 
   describe("GET /:id", () => {
     it("should return one product", async () => {
-      console.log(validAuthNonAdminUserJWTToken);
       const res = await request(app)
         .get(`/api/products/${exampleId1}`)
         .set("x-auth-token", validAuthNonAdminUserJWTToken);
