@@ -8,6 +8,8 @@ require("./startup/cors")(app);
 require("./startup/db")();
 //Routes
 require("./startup/routes")(app);
+//Config
+require("./startup/config")();
 //Server
 require("./startup/server")(app);
 
