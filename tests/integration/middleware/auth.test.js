@@ -37,6 +37,11 @@ describe("auth middleware", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("_id");
+    expect(res.body).toHaveProperty("firstName");
+    expect(res.body).toHaveProperty("lastName");
+    expect(res.body).toHaveProperty("email");
+    expect(res.body).toHaveProperty("isAdmin");
+    expect(res.body).toHaveProperty("phone");
   });
 
   it("should return 401 if no token is provided", async () => {
