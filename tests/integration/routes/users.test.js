@@ -82,6 +82,30 @@ describe("/api/users", () => {
       expect(res.body.some(g => g.email === "email@address1.com")).toBeTruthy();
       expect(res.body.some(g => g.email === "email@address2.com")).toBeTruthy();
     });
+
+    it("should return 401 if no JWT token is provided", async () => {
+      validAdminJWTToken = "";
+      const res = await request(app)
+        .get("/api/users")
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      validAdminJWTToken = "invalid";
+      const res = await request(app)
+        .get("/api/users")
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if the authenticated user is not an admin", async () => {
+      validAdminJWTToken = validAuthNonAdminUserJWTToken;
+      const res = await request(app)
+        .get("/api/users")
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(403);
+    });
   });
 
   describe("GET /me", () => {
@@ -99,6 +123,30 @@ describe("/api/users", () => {
     });
   });
   describe("GET /:id", () => {
+    it("should return 401 if no JWT token is provided", async () => {
+      validAdminJWTToken = "";
+      const res = await request(app)
+        .get(`/api/users/${exampleUserId}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      validAdminJWTToken = "invalid";
+      const res = await request(app)
+        .get(`/api/users/${exampleUserId}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if the authenticated user is not an admin", async () => {
+      validAdminJWTToken = validAuthNonAdminUserJWTToken;
+      const res = await request(app)
+        .get(`/api/users/${exampleUserId}`)
+        .set("x-auth-token", validAdminJWTToken);
+      expect(res.status).toBe(403);
+    });
+
     it("should return a user when a valid ID is passed", async () => {
       await addExampleUser();
 
