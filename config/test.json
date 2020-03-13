@@ -1,3 +1,4 @@
 {
-  "DB_URI": "mongodb://localhost:27017/loan-app_test"
+  "DB_URI": "mongodb://localhost:27017/loan-app_test",
+  "requiresAuth": true
 }
