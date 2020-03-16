@@ -1,5 +1,6 @@
 const { Category } = require("./models/category");
 const { Product } = require("./models/product");
+const { User } = require("./models/user");
 const config = require("config");
 const mongoose = require("mongoose");
 
@@ -51,6 +52,26 @@ const insertCategories = () => {
   ]);
 };
 
+const insertUsers = () => {
+  const adminUser = new User({
+    firstName: "adminFirstName",
+    lastName: "adminLastName",
+    email: "administrator@address.com",
+    password: "adminPassword",
+    phone: "22222222",
+    isAdmin: true
+  });
+
+  const regularUser = new User({
+    firstName: "regularFirstName",
+    lastName: "regularLastName",
+    email: "regularUser@address.com",
+    password: "regularUserPassword",
+    phone: "22222222"
+  });
+
+  return Promise.all([adminUser.save(), regularUser.save()]);
+};
 const insertProducts = () => {
   const ps4Console = new Product({
     name: "Playstation 4",
@@ -177,7 +198,11 @@ const insertProducts = () => {
 };
 
 const removeAll = async () => {
-  return Promise.all([Category.deleteMany({}), Product.deleteMany({})]);
+  return Promise.all([
+    Category.deleteMany({}),
+    Product.deleteMany({}),
+    User.deleteMany({})
+  ]);
 };
 
 async function seed() {
@@ -189,6 +214,7 @@ async function seed() {
   await removeAll();
   await insertCategories();
   await insertProducts();
+  await insertUsers();
 
   await mongoose.disconnect();
 }
