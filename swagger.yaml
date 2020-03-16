@@ -8,6 +8,10 @@ servers:
 tags:
   - name: Categories
   - name: Products
+  - name: Auth
+  - name: Users
+
+
 
 paths:
   /categories/{id}:
@@ -172,8 +176,97 @@ paths:
               schema:
                 $ref: "#/components/schemas/Product"
 
-  /users:
+  /auth:
     post:
+      tags:
+        - Auth
+      summary: Let user log in
+      description: Use to log in a new user
+      requestBody:
+        $ref: "#/components/requestBodies/Auth"
+      responses:
+        200:
+          description: Returs the JSON web token of the user
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjYjE3NWUwYjNiZDM2NGNjMmZmYjgiLCJuYW1lIjoiZmlyc3ROYW1lMSBsYXN0TmFtZTdEiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNTg0MzYxOTg4fQ.FsUbFWHD9AwI7UfxGwDUKtVtvwVfNg7Mo7vacsARG64
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Gets a user with the given ID
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      description: Returns the specific user
+      responses:
+        200:
+          description: A JSON object representing the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          description: Invalid ID. The ID must be a valid MongoDB ID.
+        404:
+          description: The user with the specified ID was not found
+    delete:
+      tags:
+        - Users
+      summary: Deletes a user with given id
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      description: Use to delete a user by id
+      responses:
+        200:
+          description: Returns a JSON object representing the deleted User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          description: Invalid ID. The ID must be a valid MongoDB ID.
+        404:
+          description: User was not found
+    put:
+      tags:
+        - Users
+      summary: Updates an existing User with the given id
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        $ref: "#/components/requestBodies/User"
+      description: Update an existing product
+      responses:
+        "200":
+          description: Returns the updated User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid User in request body
+        "404":
+          description: User with given ID was not found
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Return list of all Users
+      description: User to add a new User
+
+      responses:
+        200:
+          description: Return all the registered users.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    post:
+      tags:
+        - Users
       summary: Add a new user
       description: Use to add a new user
       requestBody:
@@ -185,8 +278,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+        400:
+          description: Invalid email or password, or user is already registered
 
 components:
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     Category:
       type: object
@@ -257,6 +358,15 @@ components:
             example:
               displayName: Maximum players
               value: "4"
+    Auth:
+      type: object
+      properties:
+        email:
+          type: string
+          example: Josh_Johnson@gmail.com
+        password:
+          type: string
+          example: "48927401"
     User:
       type: object
       properties:
@@ -272,6 +382,9 @@ components:
         email:
           type: string
           example: Josh_Johnson@gmail.com
+        password:
+          type: string
+          example: $2b$10$wCQyTwO/9XqjSwCOK3lFgevZlAYVSCWr6VJYzgha2zBCWk3X9uUkC
         phone:
           type: string
           example: "48927401"
@@ -294,7 +407,6 @@ components:
                   _id:
                     type: string
                     example: 5e539c042f9afe16e09ca244
-
     Product:
       description: A JSON object containing product information
       required: true
@@ -368,10 +480,24 @@ components:
               phone:
                 type: string
                 example: "48927401"
+    Auth:
+      description: A JSON object containing user email and password
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: Josh_Johnson@gmail.com
+              password:
+                type: string
+                example: PasswordForJosh_Johnson
 
   parameters:
     ObjectId:
-      name: ObjectId
+      name: id
       in: path
       description: Valid mongoose Object Id
       required: true
@@ -379,3 +505,10 @@ components:
         type: string
         minimum: 24
         example: 5e539c042f9afe16e09ca244
+
+  securitySchemes:
+    bearerAuth:           
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
