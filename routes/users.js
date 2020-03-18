@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const validateObjectID = require("../middleware/validateObjectId");
 const validateUser = require("../middleware/validateUser");
-const mongoose = require("mongoose");
 const _ = require("lodash");
 const { User } = require("../models/user");
 const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const nodemailer = require("nodemailer");
 
 router.get("/", auth, admin, async (req, res) => {
   const users = await User.find();
@@ -38,6 +38,28 @@ router.post("/", validateUser, async (req, res) => {
   user.password = await bcrypt.hash(user.password, salt);
 
   await user.save();
+
+  const token = await user.getEmailToken();
+
+  // create reusable transporter object using the default SMTP transport
+  let transporter = nodemailer.createTransport({
+    host: "smtp.sendgrid.net",
+    port: 465,
+    secure: true, // true for 465, false for other ports
+    auth: {
+      user: "apikey",
+      pass:
+        "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"
+    }
+  });
+
+  await transporter.sendMail({
+    from: '"Markus 👻" <markus1abc@gmail.com>',
+    to: user.email,
+    subject: "Hello ✔",
+    text: ``,
+    html: `Click the following link to verify your email address http://localhost:3900/api/auth/${token}`
+  });
 
   return res.send(
     _.pick(user, ["_id", "firstName", "lastName", "email", "phone"])
