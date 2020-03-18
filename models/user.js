@@ -80,7 +80,8 @@ userSchema.methods.generateAuthToken = function() {
       name: this.firstName + " " + this.lastName,
       isAdmin: this.isAdmin
     },
-    config.get("jwtPrivateKey")
+    config.get("jwtPrivateKey"),
+    { expiresIn: "1d" }
   );
 
   return token;
