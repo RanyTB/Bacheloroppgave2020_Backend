@@ -11,6 +11,8 @@ module.exports = function(req, res, next) {
   try {
     const decoded = jwt.verify(token, config.get("jwtPrivateKey"));
 
+    if (decoded.email) return res.status(400).send("Invalid token"); //if route is called with email validation JWT
+
     req.user = decoded;
     next();
   } catch (ex) {
