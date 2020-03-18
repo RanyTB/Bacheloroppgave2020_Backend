@@ -18,6 +18,9 @@ router.post("/", async (req, res) => {
 
   const token = user.generateAuthToken();
 
+  if (!user.isActive)
+    return res.status(403).send("User has not verified email address");
+
   res.send(token);
 });
 
