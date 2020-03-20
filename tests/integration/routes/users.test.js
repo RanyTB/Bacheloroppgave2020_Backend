@@ -51,7 +51,7 @@ describe("/api/users", () => {
     }).generateAuthToken();
   });
   afterEach(async () => {
-    await User.remove({});
+    await User.deleteMany({});
   });
 
   describe("GET /", () => {
