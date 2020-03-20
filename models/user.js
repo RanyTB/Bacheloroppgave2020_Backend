@@ -87,7 +87,7 @@ userSchema.methods.generateAuthToken = function() {
   return token;
 };
 
-userSchema.methods.getEmailToken = async function() {
+userSchema.methods.generateEmailToken = async function() {
   const token = jwt.sign(
     {
       _id: this._id,

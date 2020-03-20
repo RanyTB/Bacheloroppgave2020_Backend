@@ -39,7 +39,7 @@ router.post("/", validateUser, async (req, res) => {
 
   await user.save();
 
-  const token = await user.getEmailToken();
+  const token = await user.generateEmailToken();
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
