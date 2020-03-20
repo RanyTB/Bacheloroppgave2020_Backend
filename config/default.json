@@ -1,5 +1,6 @@
 {
   "DB_URI": "mongodb://localhost:27017/loan-app",
+  "frontendBaseURL": "http://localhost:3000",
   "jwtPrivateKey": "developement",
   "requiresAuth": true,
   "requiresAccentureEmail": false
