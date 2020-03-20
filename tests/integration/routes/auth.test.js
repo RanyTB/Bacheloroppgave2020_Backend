@@ -15,19 +15,28 @@ let authUser;
 
 describe("api/auth", () => {
   describe("POST /", () => {
-    let token;
-    authUser = { ...exampleAuthUser };
-
     beforeEach(async () => {});
 
     afterEach(async () => {
       await User.deleteMany({});
       authUser = { ...exampleAuthUser };
+      isActive = true;
     });
+
+    let isActive = true;
+    authUser = { ...exampleAuthUser };
+
     const exec = async () => {
-      await request(server)
+      const res = await request(server)
         .post("/api/users")
         .send({ ...exampleAuthUser });
+
+      const user = await User.findOne({ email: exampleAuthUser.email });
+
+      if (user) {
+        user.isActive = isActive;
+        await user.save();
+      }
 
       return await request(server)
         .post("/api/auth")
@@ -65,6 +74,36 @@ describe("api/auth", () => {
       authUser.password = "invpass";
       const res = await exec();
       expect(res.status).toBe(400);
+    });
+
+    it("Should return 403 if user is inactive(email has not been verified)", async () => {
+      isActive = false;
+      const res = await exec();
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe("POST /token/:jwt", () => {
+    afterEach(async () => {
+      await User.deleteMany({});
+    });
+
+    it("should return 400 if token is invalid", async () => {
+      const res = await request(server).post("/api/auth/token/invalidToken");
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 200 if token is valid", async () => {
+      const user = new User({ ...authUser });
+
+      await user.save();
+
+      const emailToken = await user.generateEmailToken();
+
+      const res = await request(server).post(`/api/auth/token/${emailToken}`);
+
+      expect(res.status).toBe(200);
     });
   });
 });
