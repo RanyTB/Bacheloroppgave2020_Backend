@@ -19,7 +19,7 @@ describe("auth middleware", () => {
 
   beforeEach(async () => {
     authUser = new User({ ...exampleAuthUser });
-    token = authUser.generateAuthToken();
+    token = await authUser.generateAuthToken();
   });
   afterEach(async () => {
     await User.deleteMany({});
@@ -53,6 +53,13 @@ describe("auth middleware", () => {
 
   it("should return 400 if token is invalid", async () => {
     token = "a";
+    const res = await exec();
+
+    expect(res.status).toBe(400);
+  });
+
+  it("should return 400 if an email verification token is supplied", async () => {
+    token = await authUser.generateEmailToken();
     const res = await exec();
 
     expect(res.status).toBe(400);
