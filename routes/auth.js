@@ -24,9 +24,8 @@ router.post("/", async (req, res) => {
   res.send(token);
 });
 
-router.post("/:token", async (req, res) => {
-  const token = req.params.token;
-  if (!token) return res.status(401).send("Access denied. No token provided");
+router.post("/token/:jwt", async (req, res) => {
+  const token = req.params.jwt;
 
   try {
     const decoded = jwt.verify(token, config.get("jwtPrivateKey"));
@@ -34,7 +33,6 @@ router.post("/:token", async (req, res) => {
     const user = await User.findById(decoded._id);
     user.isActive = true;
     await user.save();
-
     res.status(200).send("Successfully verified email");
   } catch (ex) {
     res.status(400).send("Invalid token");
