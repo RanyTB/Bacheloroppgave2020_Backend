@@ -63,7 +63,13 @@ const userSchema = new mongoose.Schema({
   },
   isAdmin: {
     type: Boolean,
-    default: false
+    default: false,
+    required: true
+  },
+  isActive: {
+    type: Boolean,
+    default: false,
+    required: true
   }
 });
 
@@ -73,6 +79,19 @@ userSchema.methods.generateAuthToken = function() {
       _id: this._id,
       name: this.firstName + " " + this.lastName,
       isAdmin: this.isAdmin
+    },
+    config.get("jwtPrivateKey"),
+    { expiresIn: "1d" }
+  );
+
+  return token;
+};
+
+userSchema.methods.generateEmailToken = async function() {
+  const token = jwt.sign(
+    {
+      _id: this._id,
+      email: this.email
     },
     config.get("jwtPrivateKey")
   );

@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const validateObjectID = require("../middleware/validateObjectId");
 const validateUser = require("../middleware/validateUser");
-const mongoose = require("mongoose");
 const _ = require("lodash");
 const { User } = require("../models/user");
 const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const sendVerifyEmail = require("../services/sendVerifyEmail");
 
 router.get("/", auth, admin, async (req, res) => {
   const users = await User.find();
@@ -38,6 +38,10 @@ router.post("/", validateUser, async (req, res) => {
   user.password = await bcrypt.hash(user.password, salt);
 
   await user.save();
+
+  const token = await user.generateEmailToken();
+
+  sendVerifyEmail(user.email, token);
 
   return res.send(
     _.pick(user, ["_id", "firstName", "lastName", "email", "phone"])

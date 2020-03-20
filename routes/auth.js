@@ -3,6 +3,8 @@ const router = express.Router();
 const { User } = require("../models/user");
 const bcrypt = require("bcrypt");
 const Joi = require("@hapi/joi");
+const jwt = require("jsonwebtoken");
+const config = require("config");
 
 router.post("/", async (req, res) => {
   const { error } = validate(req.body);
@@ -16,7 +18,25 @@ router.post("/", async (req, res) => {
 
   const token = user.generateAuthToken();
 
+  if (!user.isActive)
+    return res.status(403).send("User has not verified email address");
+
   res.send(token);
+});
+
+router.post("/token/:jwt", async (req, res) => {
+  const token = req.params.jwt;
+
+  try {
+    const decoded = jwt.verify(token, config.get("jwtPrivateKey"));
+
+    const user = await User.findById(decoded._id);
+    user.isActive = true;
+    await user.save();
+    res.status(200).send("Successfully verified email");
+  } catch (ex) {
+    res.status(400).send("Invalid token");
+  }
 });
 
 function validate(req) {
