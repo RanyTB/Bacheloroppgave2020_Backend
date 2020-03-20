@@ -58,7 +58,7 @@ router.post("/", validateUser, async (req, res) => {
     to: user.email,
     subject: "Hello ✔",
     text: ``,
-    html: `Click the following link to verify your email address http://localhost:3900/api/auth/${token}`
+    html: `Click the following link to verify your email address http://localhost:3000/verify-email/${token}`
   });
 
   return res.send(
