@@ -48,4 +48,22 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+router.get("/", auth, async (req, res) => {
+  //Get rentals specified with query params
+
+  if (req.query.requestedRentals) {
+    const rentals = await Rental.find({ dateOut: { $exists: false } });
+    return res.send(rentals);
+  }
+
+  const rentals = await Rental.find();
+  res.send(rentals);
+});
+
+router.patch("/:id", auth, async (req, res) => {
+  //Confirm rental by setting dateOut and notifying user
+  //OR mark rental as returned by setting dateReturned and OPTIONALLY setting remarks
+  //OR confirm returned
+});
+
 module.exports = router;
