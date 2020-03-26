@@ -84,6 +84,21 @@ const insertProducts = () => {
         identifier: "PS4_1",
         availableForRental: false,
         remarks: "Scratches"
+      },
+      {
+        identifier: "PS4_2",
+        availableForRental: true,
+        remarks: "Scratches"
+      },
+      {
+        identifier: "PS4_3",
+        availableForRental: true,
+        remarks: "Scratches"
+      },
+      {
+        identifier: "PS4_4",
+        availableForRental: false,
+        remarks: "Scratches"
       }
     ],
     numberOfLoans: 10,
