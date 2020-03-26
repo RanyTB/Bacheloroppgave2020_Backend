@@ -1,5 +1,15 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const Joi = require("@hapi/joi");
+Joi.objectId = require("joi-objectid")(Joi);
+
+function validateRental(rental) {
+  const schema = Joi.object({
+    productId: Joi.objectId().required(),
+    userId: Joi.objectId().required()
+  });
+  return schema.validate(rental);
+}
 
 //ADD JOI VALIDATION
 
@@ -71,4 +81,5 @@ rentalSchema.methods.return = function() {
 
 const Rental = mongoose.model("rental", rentalSchema);
 
+module.exports.validateRental = validateRental;
 module.exports.Rental = Rental;

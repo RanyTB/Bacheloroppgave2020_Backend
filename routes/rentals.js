@@ -8,8 +8,9 @@ Fawn.init(mongoose);
 const { Product } = require("../models/product");
 const auth = require("../middleware/auth");
 const { Rental } = require("../models/rental");
+const validateRental = require("../middleware/validateRental");
 
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, validateRental, async (req, res) => {
   const product = await Product.findById(req.body.productId);
   if (!product) return res.status(404).send("Product not found");
 
