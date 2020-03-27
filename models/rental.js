@@ -67,14 +67,24 @@ const rentalSchema = new Schema({
   }
 });
 
-rentalSchema.methods.confirmRental = function() {
+rentalSchema.methods.confirmRental = function(
+  pickupInstructions,
+  returnInstructions
+) {
   this.dateOut = Date.now();
+
+  this.pickupInstructions = pickupInstructions;
+  this.returnInstructions = returnInstructions;
 
   //Set product.availableForRental to false here.
 };
 
-rentalSchema.methods.return = function() {
+rentalSchema.methods.markAsReturned = function(remarks) {
   this.dateReturned = Date.now();
+
+  if (remarks) {
+    this.remarks = remarks;
+  }
 
   //Set product.availableForRental to true here.
 };

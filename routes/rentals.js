@@ -7,9 +7,41 @@ Fawn.init(mongoose);
 
 const { Product } = require("../models/product");
 const auth = require("../middleware/auth");
+const admin = require("../middleware/admin");
 const { Rental } = require("../models/rental");
 const validateRental = require("../middleware/validateRental");
 
+//Requests a return
+router.post("/returns/:id", auth, async (req, res) => {
+  const rental = await Rental.findById(req.params.id);
+  if (!Rental) return res.send(400).send("Not a valid rental ID");
+
+  rental.markAsReturned(req.body.remarks);
+
+  await rental.save();
+
+  res.send(rental);
+});
+
+//Admin confirms a return
+router.patch("/returns/:id", auth, admin, async (req, res) => {});
+
+//Admin confirms rental with given ID and supplied instructions
+router.patch("/:id", auth, admin, async (req, res) => {
+  const rental = await Rental.findById(req.params.id);
+
+  rental.confirmRental(
+    req.body.pickUpInstructions,
+    req.body.returnInstructions
+  );
+
+  //email user of confirmation services.sendNotificationEmail(req.user.)
+
+  await rental.save();
+  res.send(rental);
+});
+
+//Creates a new rental
 router.post("/", auth, validateRental, async (req, res) => {
   const product = await Product.findById(req.body.productId);
   if (!product) return res.status(404).send("Product not found");
@@ -49,16 +81,31 @@ router.post("/", auth, validateRental, async (req, res) => {
   }
 });
 
-router.get("/", auth, async (req, res) => {
-  //Get rentals specified with query params
-
-  if (req.query.requestedRentals) {
+//gets either requested rentals or all rentals
+router.get("/", auth, admin, async (req, res) => {
+  if (req.query.requested) {
     const rentals = await Rental.find({ dateOut: { $exists: false } });
     return res.send(rentals);
   }
 
   const rentals = await Rental.find();
   res.send(rentals);
+});
+
+//Get either processed or unprocessed returns depending on req.query.
+router.get("/returns/", auth, admin, async (req, res) => {
+  const processed = req.query.processed;
+
+  if (processed) {
+    const rentals = await Rental.find({ confirmedReturned: true });
+    return res.send(rentals);
+  }
+
+  const rentals = await Rental.find({
+    dateReturned: { $exists: true },
+    confirmedReturned: false
+  });
+  return res.send(rentals);
 });
 
 router.patch("/:id", auth, async (req, res) => {
