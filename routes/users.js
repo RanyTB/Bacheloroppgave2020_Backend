@@ -8,6 +8,7 @@ const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 const sendVerifyEmail = require("../services/sendVerifyEmail");
+const { Rental } = require("../models/rental");
 
 router.get("/", auth, admin, async (req, res) => {
   const users = await User.find();
@@ -26,6 +27,16 @@ router.get("/:id", auth, admin, validateObjectID, async (req, res) => {
   res.send(user);
 });
 
+router.get("/:id/rentals", auth, async (req, res) => {
+  const paramID = req.params.id;
+  if (!req.user.isAdmin && req.user._id !== paramID) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  const rentals = await Rental.find({ "user._id": paramID });
+
+  res.send(rentals);
+});
 router.post("/", validateUser, async (req, res) => {
   let user = await User.findOne({ email: req.body.email });
   if (user) return res.status(400).send("User is already registered");
