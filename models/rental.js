@@ -85,8 +85,10 @@ rentalSchema.methods.markAsReturned = function(remarks) {
   if (remarks) {
     this.remarks = remarks;
   }
+};
 
-  //Set product.availableForRental to true here.
+rentalSchema.methods.confirmReturn = function() {
+  this.confirmedReturned = true;
 };
 
 const Rental = mongoose.model("rental", rentalSchema);
