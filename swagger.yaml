@@ -507,8 +507,10 @@ components:
         example: 5e539c042f9afe16e09ca244
 
   securitySchemes:
-    bearerAuth:           
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    Auth-Token:
+      type: apiKey
+      in: header
+      name: x-auth-token
 
+security:
+  - Auth-Token: []
