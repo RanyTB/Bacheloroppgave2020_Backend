@@ -10,6 +10,7 @@ tags:
   - name: Products
   - name: Auth
   - name: Users
+  - name: Rentals
 
 
 
@@ -281,6 +282,23 @@ paths:
         400:
           description: Invalid email or password, or user is already registered
 
+  /rentals:
+    post:
+      tags:
+        - Rentals
+      summary: Create a new rental
+      description: Let user rent an item
+      requestBody:
+       $ref: "#/components/requestBodies/Rental"
+      responses:
+        200:
+          description: Returns the new rental
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Rental"
+          
+
 components:
   securitySchemes:
     bearerAuth: # arbitrary name for the security scheme
@@ -388,7 +406,46 @@ components:
         phone:
           type: string
           example: "48927401"
-
+    Rental:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e81c0c83769d276c48db735
+        user: 
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e7dd97810189e1e8c04f079
+            name:
+              type: string
+              example: Josh Johnson
+        product:
+          type: object
+          properties:
+            _id: 
+              type: string
+              example: 5e7ce341bd0b795d94bc0346
+            name: 
+              type: string
+              example: Playstation 4
+            entity: 
+              type: object
+              properties:
+                _id:
+                  type: string
+                  example: 5e7ce341bd0b795d94bc0348
+                identifier:
+                  type: string
+                  example: PS4_1
+        confirmedReturned:
+          type: string
+          example: false
+                
+            
+            
+      
   requestBodies:
     Category:
       description: A JSON object containing category information. **Parent field is optional**
@@ -494,6 +551,19 @@ components:
               password:
                 type: string
                 example: PasswordForJosh_Johnson
+    Rental:
+      description: A JSON object containing the productId
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              productId: 
+                type: string
+                example: 5e539c042f9afe16e09ca244
+
+    
 
   parameters:
     ObjectId:
