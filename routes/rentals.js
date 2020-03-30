@@ -74,12 +74,8 @@ router.post("/", auth, validateRental, async (req, res) => {
   task.save("rentals", rental);
   task.update("products", { _id: product._id }, { entities: product.entities });
 
-  try {
-    await task.run();
-    res.send(rental);
-  } catch (error) {
-    res.status(500).send("Something failed");
-  }
+  await task.run();
+  res.send(rental);
 });
 
 //Admin confirms rental with given ID and supplied instructions
