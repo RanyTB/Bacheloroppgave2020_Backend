@@ -279,6 +279,7 @@ paths:
                 $ref: "#/components/schemas/User"
         400:
           description: Invalid email or password, or user is already registered
+
   /rentals:
     get:
       tags:
@@ -301,7 +302,79 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Rental"
+    post:
+      tags:
+        - Rentals
+      summary: Create a new rental
+      description: Let user rent an item
+      requestBody:
+        $ref: "#/components/requestBodies/Rental"
+      responses:
+        200:
+          description: Returns the new rental
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: 5e6106c3b3817f3a88be0860
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 5e6106c3b3817f3a88be0860
+                      name:
+                        type: string
+                        example: John Johnson
+                  product:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 5e6106c3b3817f3a88be0860
+                      name:
+                        type: string
+                        example: Playstation 4
+                      entity:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                            example: 5e6106c3b3817f3a88be0860
+                          identifier:
+                            type: string
+                            example: PS4_1
+                          remarks:
+                            type: string
+                            example: Scratches
+                  confirmedReturned:
+                    type: boolean
+                    example: false
+  /rentals/returns:
+    get: 
+      tags:
+        - Rentals
+      summary: Get returns
+      description: Get unprocessed returns or all returns
+      parameters:
+        - name: processed
+          in: query
+          schema:
+            type: boolean
+      responses:
+          "200":
+            description: Returns an array of rentals
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Rental"
 
+    
 components:
   schemas:
     Category:
@@ -573,11 +646,9 @@ components:
           schema:
             type: object
             properties:
-              productId: 
+              productId:
                 type: string
                 example: 5e539c042f9afe16e09ca244
-
-    
 
   parameters:
     ObjectId:
