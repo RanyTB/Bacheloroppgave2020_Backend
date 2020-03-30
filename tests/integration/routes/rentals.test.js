@@ -480,6 +480,20 @@ describe("/api/rentals", () => {
       expect(product.entities[0].availableForRental).toBeFalsy();
     });
 
+    it("should return 400 if objectId is invalid", async () => {
+      rentalId = "invalid";
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 404 if rental does not exist", async () => {
+      rentalId = mongoose.Types.ObjectId();
+
+      const res = await exec();
+      expect(res.status).toBe(404);
+    });
+
     it("should return 400 if setAvailable is missing in request body", async () => {
       setAvailable = undefined;
       const res = await exec();

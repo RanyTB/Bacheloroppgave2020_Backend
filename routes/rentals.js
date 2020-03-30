@@ -122,37 +122,43 @@ router.post("/returns/:id", auth, validateObjectId, async (req, res) => {
 });
 
 //Admin confirms a return
-router.patch("/returns/:id", auth, admin, async (req, res) => {
-  if (req.body.setAvailable === undefined)
-    return res.status(400).send("Request body missing setAvailable");
+router.patch(
+  "/returns/:id",
+  auth,
+  admin,
+  validateObjectId,
+  async (req, res) => {
+    if (req.body.setAvailable === undefined)
+      return res.status(400).send("Request body missing setAvailable");
 
-  const rental = await Rental.findById(req.params.id);
-  if (!rental) return res.status(404).send("Rental not found");
+    const rental = await Rental.findById(req.params.id);
+    if (!rental) return res.status(404).send("Rental not found");
 
-  if (req.body.setAvailable) {
-    const product = await Product.findById(rental.product._id);
+    if (req.body.setAvailable) {
+      const product = await Product.findById(rental.product._id);
 
-    const entity = product.entities.find(entity => {
-      return entity._id.toString() === rental.product.entity._id.toString();
-    });
+      const entity = product.entities.find(entity => {
+        return entity._id.toString() === rental.product.entity._id.toString();
+      });
 
-    entity.availableForRental = true;
+      entity.availableForRental = true;
 
-    const task = Fawn.Task();
-    task.update("rentals", { _id: rental._id }, { confirmedReturned: true });
-    task.update(
-      "products",
-      { _id: product._id },
-      { entities: product.entities }
-    );
+      const task = Fawn.Task();
+      task.update("rentals", { _id: rental._id }, { confirmedReturned: true });
+      task.update(
+        "products",
+        { _id: product._id },
+        { entities: product.entities }
+      );
 
-    await task.run();
-    return res.send("Return successful");
-  } else {
-    rental.confirmReturn();
-    await rental.save();
-    res.send("Return successful");
+      await task.run();
+      return res.send("Return successful");
+    } else {
+      rental.confirmReturn();
+      await rental.save();
+      res.send("Return successful");
+    }
   }
-});
+);
 
 module.exports = router;
