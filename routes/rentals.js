@@ -97,9 +97,14 @@ router.patch("/:id", auth, admin, async (req, res) => {
 });
 
 //Requests a return
-router.post("/returns/:id", auth, async (req, res) => {
+router.post("/returns/:id", auth, validateObjectId, async (req, res) => {
   const rental = await Rental.findById(req.params.id);
-  if (!Rental) return res.send(400).send("Not a valid rental ID");
+  if (!rental) return res.status(404).send("Rental not found");
+
+  if (rental.user._id.toString() !== req.user._id)
+    return res
+      .status(400)
+      .send("User registered on rental is not the same as logged in user");
 
   rental.markAsReturned(req.body.remarks);
 
