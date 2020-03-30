@@ -10,6 +10,7 @@ const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 const { Rental } = require("../models/rental");
 const validateRental = require("../middleware/validateRental");
+const validateObjectId = require("../middleware/validateObjectId");
 
 //gets either requested rentals or all rentals
 router.get("/", auth, admin, async (req, res) => {
