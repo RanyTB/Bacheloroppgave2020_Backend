@@ -82,8 +82,15 @@ router.post("/", auth, validateRental, async (req, res) => {
 });
 
 //Admin confirms rental with given ID and supplied instructions
-router.patch("/:id", auth, admin, async (req, res) => {
+router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
+  if (!req.body.pickUpInstructions || !req.body.returnInstructions) {
+    return res
+      .status(400)
+      .send("Missing pickupInstructions or returnInstructions in request body");
+  }
+
   const rental = await Rental.findById(req.params.id);
+  if (!rental) return res.status(404).send("Rental not found");
 
   rental.confirmRental(
     req.body.pickUpInstructions,
