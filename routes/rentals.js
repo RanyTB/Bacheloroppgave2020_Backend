@@ -13,8 +13,11 @@ const validateRental = require("../middleware/validateRental");
 
 //gets either requested rentals or all rentals
 router.get("/", auth, admin, async (req, res) => {
-  if (req.query.requested) {
-    const rentals = await Rental.find({ dateOut: { $exists: false } });
+  if (req.query.requested === "true") {
+    const rentals = await Rental.find({
+      dateOut: { $exists: false },
+      dateReturned: { $exists: false }
+    });
     return res.send(rentals);
   }
 

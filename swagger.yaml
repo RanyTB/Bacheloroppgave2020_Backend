@@ -12,8 +12,6 @@ tags:
   - name: Users
   - name: Rentals
 
-
-
 paths:
   /categories/{id}:
     get:
@@ -281,31 +279,30 @@ paths:
                 $ref: "#/components/schemas/User"
         400:
           description: Invalid email or password, or user is already registered
-
   /rentals:
-    post:
+    get:
       tags:
         - Rentals
-      summary: Create a new rental
-      description: Let user rent an item
-      requestBody:
-       $ref: "#/components/requestBodies/Rental"
+      summary: Get rentals
+      description: Get all rentals or only requested/unprocessed rentals
+      parameters:
+        - name: requested
+          in: query
+          required: true
+          description: If true, returns only requested/unprocessed rentals
+          schema:
+            type: boolean
       responses:
-        200:
-          description: Returns the new rental
+        "200":
+          description: Returns a list of rentals
           content:
             application/json:
-              schema: 
-                $ref: "#/components/schemas/Rental"
-          
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rental"
 
 components:
-  securitySchemes:
-    bearerAuth: # arbitrary name for the security scheme
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
   schemas:
     Category:
       type: object
@@ -411,41 +408,58 @@ components:
       properties:
         _id:
           type: string
-          example: 5e81c0c83769d276c48db735
-        user: 
+          example: 5e6106c3b3817f3a88be0860
+        user:
           type: object
           properties:
             _id:
               type: string
-              example: 5e7dd97810189e1e8c04f079
+              example: 5e6106c3b3817f3a88be0860
             name:
               type: string
-              example: Josh Johnson
+              example: John Johnson
         product:
           type: object
           properties:
-            _id: 
+            _id:
               type: string
-              example: 5e7ce341bd0b795d94bc0346
-            name: 
+              example: 5e6106c3b3817f3a88be0860
+            name:
               type: string
               example: Playstation 4
-            entity: 
+            entity:
               type: object
               properties:
                 _id:
                   type: string
-                  example: 5e7ce341bd0b795d94bc0348
+                  example: 5e6106c3b3817f3a88be0860
                 identifier:
                   type: string
                   example: PS4_1
-        confirmedReturned:
+                remarks:
+                  type: string
+                  example: Scratches
+        dateOut:
           type: string
-          example: false
-                
-            
-            
-      
+          format: date-time
+          example: 2020-01-01T17:32:28Z
+        dateReturned:
+          type: string
+          format: date-time
+          example: 2020-01-10T17:32:28Z
+        confirmedReturned:
+          type: boolean
+          example: true
+        pickupInstructions:
+          type: string
+          example: "Pick up at the mall. Call 99887766 when there"
+        returnInstructions:
+          type: string
+          example: "Call me at 99887766 to schedule return"
+        remarks:
+          type: string
+          example: "Power cable was damaged under use"
+
   requestBodies:
     Category:
       description: A JSON object containing category information. **Parent field is optional**
