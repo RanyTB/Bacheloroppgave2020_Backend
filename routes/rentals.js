@@ -10,6 +10,7 @@ const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 const { Rental } = require("../models/rental");
 const validateRental = require("../middleware/validateRental");
+const validateObjectId = require("../middleware/validateObjectId");
 
 //gets either requested rentals or all rentals
 router.get("/", auth, admin, async (req, res) => {
@@ -82,8 +83,15 @@ router.post("/", auth, validateRental, async (req, res) => {
 });
 
 //Admin confirms rental with given ID and supplied instructions
-router.patch("/:id", auth, admin, async (req, res) => {
+router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
+  if (!req.body.pickUpInstructions || !req.body.returnInstructions) {
+    return res
+      .status(400)
+      .send("Missing pickupInstructions or returnInstructions in request body");
+  }
+
   const rental = await Rental.findById(req.params.id);
+  if (!rental) return res.status(404).send("Rental not found");
 
   rental.confirmRental(
     req.body.pickUpInstructions,
@@ -97,9 +105,14 @@ router.patch("/:id", auth, admin, async (req, res) => {
 });
 
 //Requests a return
-router.post("/returns/:id", auth, async (req, res) => {
+router.post("/returns/:id", auth, validateObjectId, async (req, res) => {
   const rental = await Rental.findById(req.params.id);
-  if (!Rental) return res.send(400).send("Not a valid rental ID");
+  if (!rental) return res.status(404).send("Rental not found");
+
+  if (rental.user._id.toString() !== req.user._id)
+    return res
+      .status(400)
+      .send("User registered on rental is not the same as logged in user");
 
   rental.markAsReturned(req.body.remarks);
 
@@ -109,41 +122,43 @@ router.post("/returns/:id", auth, async (req, res) => {
 });
 
 //Admin confirms a return
-router.patch("/returns/:id", auth, admin, async (req, res) => {
-  if (req.body.setAvailable === undefined) {
-    res.status(400).send("Request body missing setAvailable");
-  }
+router.patch(
+  "/returns/:id",
+  auth,
+  admin,
+  validateObjectId,
+  async (req, res) => {
+    if (req.body.setAvailable === undefined)
+      return res.status(400).send("Request body missing setAvailable");
 
-  const rental = await Rental.findById(req.params.id);
-  if (!rental) return res.status(404).send("Rental not found");
+    const rental = await Rental.findById(req.params.id);
+    if (!rental) return res.status(404).send("Rental not found");
 
-  if (req.body.setAvailable) {
-    const product = await Product.findById(rental.product._id);
-    const entity = product.entities.find(entity => {
-      return entity._id.toString() === rental.product.entity._id.toString();
-    });
+    if (req.body.setAvailable) {
+      const product = await Product.findById(rental.product._id);
 
-    entity.availableForRental = true;
+      const entity = product.entities.find(entity => {
+        return entity._id.toString() === rental.product.entity._id.toString();
+      });
 
-    const task = Fawn.Task();
-    task.update("rentals", { _id: rental._id }, { confirmedReturned: true });
-    task.update(
-      "products",
-      { _id: product._id },
-      { entities: product.entities }
-    );
+      entity.availableForRental = true;
 
-    try {
+      const task = Fawn.Task();
+      task.update("rentals", { _id: rental._id }, { confirmedReturned: true });
+      task.update(
+        "products",
+        { _id: product._id },
+        { entities: product.entities }
+      );
+
       await task.run();
       return res.send("Return successful");
-    } catch (error) {
-      res.status(500).send("Something failed");
+    } else {
+      rental.confirmReturn();
+      await rental.save();
+      res.send("Return successful");
     }
-  } else {
-    rental.confirmReturn();
-    await rental.save();
-    res.send("Return successful");
   }
-});
+);
 
 module.exports = router;

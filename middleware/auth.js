@@ -19,6 +19,6 @@ module.exports = function(req, res, next) {
     if (ex.name === "TokenExpiredError")
       return res.status(403).send("Token has expired");
 
-    res.status(400).send("Invalid token");
+    return res.status(400).send("Invalid token");
   }
 };

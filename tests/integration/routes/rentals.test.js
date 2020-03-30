@@ -46,8 +46,8 @@ let exampleProduct = {
 
 let unprocessedRental = {
   user: {
-    _id: admin._id,
-    name: admin.firstName + " " + admin.lastName
+    _id: nonAdminUser._id,
+    name: nonAdminUser.firstName + " " + nonAdminUser.lastName
   },
   product: {
     _id: mongoose.Types.ObjectId(),
@@ -56,6 +56,23 @@ let unprocessedRental = {
       identifier: exampleProduct.entities[0].identifier
     }
   }
+};
+
+let processedRental = {
+  user: {
+    _id: nonAdminUser._id,
+    name: nonAdminUser.firstName + " " + nonAdminUser.lastName
+  },
+  product: {
+    _id: mongoose.Types.ObjectId(),
+    name: exampleProduct.name,
+    entity: {
+      identifier: exampleProduct.entities[0].identifier
+    }
+  },
+  dateOut: Date.now(),
+  pickUpInstructions: "Pickup instructions here",
+  returnInstructions: "return instructions here"
 };
 
 describe("/api/rentals", () => {
@@ -242,6 +259,274 @@ describe("/api/rentals", () => {
         .post("/api/rentals")
         .set("x-auth-token", "invalid");
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe("PATCH /:id", () => {
+    let rentalId;
+    let pickUpInstructions;
+    let returnInstructions;
+    let JWTToken;
+
+    beforeEach(async () => {
+      const rental = new Rental({ ...unprocessedRental });
+      await rental.save();
+
+      rentalId = rental._id;
+      pickUpInstructions = "Pickup insuction example";
+      returnInstructions = "Return insuction example";
+      JWTToken = validAdminToken;
+    });
+
+    const exec = () => {
+      return request(app)
+        .patch(`/api/rentals/${rentalId}`)
+        .send({ pickUpInstructions, returnInstructions })
+        .set("x-auth-token", JWTToken);
+    };
+
+    it("should return 200 if request body and admin token is provided", async () => {
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it("should return rental with dateOut on 200 response", async () => {
+      const res = await exec();
+      expect(res.body).toHaveProperty("user");
+      expect(res.body).toHaveProperty("product");
+      expect(res.body).toHaveProperty("dateOut");
+    });
+
+    it("should return 400 if pickUpInstructions is not provided", async () => {
+      pickUpInstructions = "";
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 400 if returnInstructions is not provided", async () => {
+      returnInstructions = "";
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 400 if rental id is not a valid mongoose objectId", async () => {
+      rentalId = "invalidId";
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 404 if rental id doesn't exist", async () => {
+      rentalId = mongoose.Types.ObjectId();
+
+      const res = await exec();
+      expect(res.status).toBe(404);
+    });
+
+    it("should return 401 if no JWT token is provided", async () => {
+      JWTToken = "";
+      const res = await exec();
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      JWTToken = "invalid";
+      const res = await exec();
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if user is not admin", async () => {
+      JWTToken = validNonAdminToken;
+      const res = await exec();
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe("POST /returns/:id", () => {
+    let rentalId;
+    let JWTToken;
+    let remarks;
+
+    beforeEach(async () => {
+      const rental = new Rental({ ...processedRental });
+      await rental.save();
+
+      rentalId = rental._id;
+      JWTToken = validNonAdminToken;
+      remarks = "Got some scratches during transport";
+    });
+
+    const exec = () => {
+      return request(app)
+        .post(`/api/rentals/returns/${rentalId}`)
+        .send({ remarks })
+        .set("x-auth-token", JWTToken);
+    };
+
+    it("should return 200 when rental exists", async () => {
+      const res = await exec();
+
+      expect(res.status).toBe(200);
+    });
+
+    it("should return rental body on 200 response", async () => {
+      const res = await exec();
+
+      expect(res.body).toHaveProperty("product");
+      expect(res.body).toHaveProperty("user");
+      expect(res.body).toHaveProperty("dateReturned");
+      expect(res.body).toHaveProperty("remarks");
+    });
+
+    it("should return 404 when rental does not exist", async () => {
+      rentalId = mongoose.Types.ObjectId();
+      const res = await exec();
+
+      expect(res.status).toBe(404);
+    });
+
+    it("should return 400 when rental id is invalid", async () => {
+      rentalId = "invalid";
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 400 when user in JWT token is not the same as in rental document", async () => {
+      JWTToken = validAdminToken;
+      const res = await exec();
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 401 if no JWT token is provided", async () => {
+      JWTToken = "";
+
+      const res = await exec();
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      JWTToken = "invalid";
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe("PATCH /returns/:id", () => {
+    let rentalId;
+    let setAvailable;
+    let JWTToken;
+
+    beforeEach(async () => {
+      let product = { ...exampleProduct };
+      product.entities[0].availableForRental = false;
+      product = new Product({ _id: exampleId1, ...product });
+
+      let rental = { ...processedRental };
+      rental.product._id = product._id;
+      rental.product.entity._id = product.entities[0]._id;
+      rental.dateReturned = Date.now();
+      rental = new Rental({ ...rental });
+
+      await rental.save();
+      await product.save();
+
+      rentalId = rental._id;
+      setAvailable = true;
+      JWTToken = validAdminToken;
+    });
+
+    const exec = () => {
+      return request(app)
+        .patch(`/api/rentals/returns/${rentalId}`)
+        .send({ setAvailable })
+        .set("x-auth-token", JWTToken);
+    };
+
+    it("should return 200 when return is successful", async () => {
+      const res = await exec();
+      expect(res.status).toBe(200);
+    });
+
+    it("should set confirmedReturned to true in rental document", async () => {
+      const res = await exec();
+      const rental = await Rental.findOne(rentalId);
+
+      expect(res.status).toBe(200);
+      expect(rental.confirmedReturned).toBeTruthy();
+    });
+
+    it("should set availableforRental to true in product document", async () => {
+      const res = await exec();
+      const product = await Product.findOne(exampleId1);
+
+      expect(res.status).toBe(200);
+      expect(product.entities[0].availableForRental).toBeTruthy();
+    });
+
+    it("should set availableforRental to false in product document", async () => {
+      setAvailable = false;
+      const res = await exec();
+
+      const product = await Product.findOne(exampleId1);
+
+      expect(res.status).toBe(200);
+      expect(product.entities[0].availableForRental).toBeFalsy();
+    });
+
+    it("should return 400 if objectId is invalid", async () => {
+      rentalId = "invalid";
+
+      const res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 404 if rental does not exist", async () => {
+      rentalId = mongoose.Types.ObjectId();
+
+      const res = await exec();
+      expect(res.status).toBe(404);
+    });
+
+    it("should return 400 if setAvailable is missing in request body", async () => {
+      setAvailable = undefined;
+      const res = await exec();
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 404 if rental does not exist", async () => {
+      rentalId = mongoose.Types.ObjectId();
+      const res = await exec();
+
+      expect(res.status).toBe(404);
+    });
+
+    it("should return 401 if authentication token is not provided", async () => {
+      JWTToken = "";
+      const res = await exec();
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if authentication token is invalid", async () => {
+      JWTToken = "invalid";
+      const res = await exec();
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if user is not admin", async () => {
+      JWTToken = validNonAdminToken;
+      const res = await exec();
+
+      expect(res.status).toBe(403);
     });
   });
 });
