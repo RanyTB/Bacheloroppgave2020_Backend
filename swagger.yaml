@@ -295,13 +295,25 @@ paths:
             type: boolean
       responses:
         "200":
-          description: Returns a list of rentals
+          description: Returns all rentals.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Rental"
+                  oneOf:
+                    - $ref: "#/components/schemas/ConfirmedRental"
+                    - $ref: "#/components/schemas/RequestedRental"
+        "202":
+          description: Returns requested rentals only.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RequestedRental"
+                  
+
     post:
       tags:
         - Rentals
@@ -354,7 +366,7 @@ paths:
                     type: boolean
                     example: false
   /rentals/returns:
-    get: 
+    get:
       tags:
         - Rentals
       summary: Get returns
@@ -365,16 +377,25 @@ paths:
           schema:
             type: boolean
       responses:
-          "200":
-            description: Returns an array of rentals
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/Rental"
+        "200":
+          description: Returns an array of all returns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/Rental"
+                    - $ref: "#/components/schemas/UnprocessedReturn"
+        "202":
+          description: Returns an array of only unprocessed returns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UnprocessedReturn"
 
-    
 components:
   schemas:
     Category:
@@ -532,7 +553,151 @@ components:
         remarks:
           type: string
           example: "Power cable was damaged under use"
-
+    RequestedRental:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        user:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: John Johnson
+        product:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: Playstation 4
+            entity:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  example: 5e6106c3b3817f3a88be0860
+                identifier:
+                  type: string
+                  example: PS4_1
+                remarks:
+                  type: string
+                  example: Scratches
+        confirmedReturned:
+          type: boolean
+          example: false
+    ConfirmedRental:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        user:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: John Johnson
+        product:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: Playstation 4
+            entity:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  example: 5e6106c3b3817f3a88be0860
+                identifier:
+                  type: string
+                  example: PS4_1
+                remarks:
+                  type: string
+                  example: Scratches
+        confirmedReturned:
+          type: boolean
+          example: false
+        pickupInstructions:
+          type: string
+          example: "Pick up at the mall. Call 99887766 when there"
+        returnInstructions:
+          type: string
+          example: "Call me at 99887766 to schedule return"
+        dateOut:
+          type: string
+          format: date-time
+          example: 2020-01-01T17:32:28Z
+    UnprocessedReturn:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        user:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: John Johnson
+        product:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: Playstation 4
+            entity:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  example: 5e6106c3b3817f3a88be0860
+                identifier:
+                  type: string
+                  example: PS4_1
+                remarks:
+                  type: string
+                  example: Scratches
+        dateOut:
+          type: string
+          format: date-time
+          example: 2020-01-01T17:32:28Z
+        dateReturned:
+          type: string
+          format: date-time
+          example: 2020-01-10T17:32:28Z
+        confirmedReturned:
+          type: boolean
+          example: false
+        pickupInstructions:
+          type: string
+          example: "Pick up at the mall. Call 99887766 when there"
+        returnInstructions:
+          type: string
+          example: "Call me at 99887766 to schedule return"
+        remarks:
+          type: string
+          example: "Power cable was damaged under use"    
+  
   requestBodies:
     Category:
       description: A JSON object containing category information. **Parent field is optional**
