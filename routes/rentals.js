@@ -11,6 +11,8 @@ const admin = require("../middleware/admin");
 const { Rental } = require("../models/rental");
 const validateRental = require("../middleware/validateRental");
 const validateObjectId = require("../middleware/validateObjectId");
+const sendVerifyEmail = require("../services/sendVerifyEmail");
+const { User } = require("../models/user");
 
 //gets either requested rentals or all rentals
 router.get("/", auth, admin, async (req, res) => {
@@ -98,7 +100,17 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
     req.body.returnInstructions
   );
 
-  //email user of confirmation services.sendNotificationEmail(req.user.)
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return res.status(500).send("Something went wrong");
+  }
+
+  sendVerifyEmail(
+    user,
+    "Your rental has been approved",
+    `Hello ${req.user.name},<br><br>Your rental request for ${rental.product.name} has been approved.
+    <br><br>Pick up instructions: ${rental.pickUpInstructions}<br>return instructions: ${rental.returnInstructions}`
+  );
 
   await rental.save();
   res.send(rental);
