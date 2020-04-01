@@ -207,6 +207,11 @@ describe("/api/users", () => {
   });
 
   describe("GET /:id/rentals", () => {
+    afterEach(async () => {
+      await Product.deleteMany({});
+      await Rental.deleteMany({});
+    });
+
     it("should return 401 if the user that request another users rentals is not admin", async () => {
       const nonAdmin = new User({ exampleUser });
       const admin = new User({ exampleAdmin });
