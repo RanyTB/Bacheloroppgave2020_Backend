@@ -1,8 +1,10 @@
 const { Category } = require("./models/category");
 const { Product } = require("./models/product");
 const { User } = require("./models/user");
+const { Rental } = require("./models/rental");
 const config = require("config");
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 let gamingConsoles;
 let boardGames;
@@ -52,22 +54,27 @@ const insertCategories = () => {
   ]);
 };
 
-const insertUsers = () => {
+const insertUsers = async () => {
+  const salt = await bcrypt.genSalt(10);
+  const password = await bcrypt.hash("12345678", salt);
+
   const adminUser = new User({
     firstName: "adminFirstName",
     lastName: "adminLastName",
     email: "administrator@address.com",
-    password: "adminPassword",
+    password,
     phone: "22222222",
-    isAdmin: true
+    isAdmin: true,
+    isActive: true
   });
 
   const regularUser = new User({
     firstName: "regularFirstName",
     lastName: "regularLastName",
     email: "regularUser@address.com",
-    password: "regularUserPassword",
-    phone: "22222222"
+    password,
+    phone: "22222222",
+    isActive: true
   });
 
   return Promise.all([adminUser.save(), regularUser.save()]);
@@ -216,7 +223,8 @@ const removeAll = async () => {
   return Promise.all([
     Category.deleteMany({}),
     Product.deleteMany({}),
-    User.deleteMany({})
+    User.deleteMany({}),
+    Rental.deleteMany({})
   ]);
 };
 
