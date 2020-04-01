@@ -64,12 +64,12 @@ const rentalSchema = new Schema({
 });
 
 rentalSchema.methods.confirmRental = function(
-  pickupInstructions,
+  pickUpInstructions,
   returnInstructions
 ) {
   this.dateOut = Date.now();
 
-  this.pickupInstructions = pickupInstructions;
+  this.pickUpInstructions = pickUpInstructions;
   this.returnInstructions = returnInstructions;
 
   //Set product.availableForRental to false here.
