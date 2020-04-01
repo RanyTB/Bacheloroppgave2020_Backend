@@ -5,7 +5,7 @@ const app = require("../../../index");
 const { User } = require("../../../models/user");
 const { Product } = require("../../../models/product");
 
-let exampleUser = {
+const exampleUser = {
   firstName: "adminFirstName",
   lastName: "adminLastName",
   email: "administrator@address.com",
@@ -13,15 +13,7 @@ let exampleUser = {
   phone: "22222222"
 };
 
-const admin = new User({ ...exampleUser, isAdmin: true });
-const nonAdminUser = new User({ ...exampleUser });
-
-const validAdminToken = admin.generateAuthToken();
-const validNonAdminToken = nonAdminUser.generateAuthToken();
-
-const exampleId1 = mongoose.Types.ObjectId();
-
-let exampleProduct = {
+const exampleProduct = {
   name: "ValidName",
   category: {
     _id: mongoose.Types.ObjectId(),
@@ -44,10 +36,10 @@ let exampleProduct = {
   ]
 };
 
-let unprocessedRental = {
+const unprocessedRental = {
   user: {
-    _id: nonAdminUser._id,
-    name: nonAdminUser.firstName + " " + nonAdminUser.lastName
+    _id: "notSet",
+    name: exampleUser.firstName + " " + exampleUser.lastName
   },
   product: {
     _id: mongoose.Types.ObjectId(),
@@ -58,10 +50,10 @@ let unprocessedRental = {
   }
 };
 
-let processedRental = {
+const processedRental = {
   user: {
-    _id: nonAdminUser._id,
-    name: nonAdminUser.firstName + " " + nonAdminUser.lastName
+    _id: "notSet",
+    name: exampleUser.firstName + " " + exampleUser.lastName
   },
   product: {
     _id: mongoose.Types.ObjectId(),
@@ -76,6 +68,25 @@ let processedRental = {
 };
 
 describe("/api/rentals", () => {
+  let admin;
+  let nonAdminUser;
+  let validAdminToken;
+  let validNonAdminToken;
+  let exampleId1;
+
+  beforeEach(async () => {
+    admin = new User({ ...exampleUser, isAdmin: true });
+    nonAdminUser = new User({ ...exampleUser });
+
+    unprocessedRental.user._id = nonAdminUser._id;
+    processedRental.user._id = nonAdminUser._id;
+
+    validAdminToken = admin.generateAuthToken();
+    validNonAdminToken = nonAdminUser.generateAuthToken();
+
+    exampleId1 = mongoose.Types.ObjectId();
+  });
+
   afterEach(async () => {
     await Product.deleteMany({});
     await User.deleteMany({});
@@ -271,6 +282,8 @@ describe("/api/rentals", () => {
     beforeEach(async () => {
       const rental = new Rental({ ...unprocessedRental });
       await rental.save();
+
+      await nonAdminUser.save();
 
       rentalId = rental._id;
       pickUpInstructions = "Pickup insuction example";
