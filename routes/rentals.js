@@ -96,15 +96,19 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
     req.body.returnInstructions
   );
 
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(rental.user._id);
   if (!user) {
-    return res.status(500).send("Something went wrong");
+    return res
+      .status(500)
+      .send(
+        "UserID in rental does not exist or database is down! Mail not sent."
+      );
   }
 
   sendEmail(
     user,
     "Your rental has been approved",
-    `Hello ${req.user.name},<br><br>Your rental request for ${rental.product.name} has been approved.
+    `Hello ${user.firstName},<br><br>Your rental request for ${rental.product.name} has been approved.
     <br><br>Pick up instructions: ${rental.pickUpInstructions}<br>return instructions: ${rental.returnInstructions}`
   );
 
