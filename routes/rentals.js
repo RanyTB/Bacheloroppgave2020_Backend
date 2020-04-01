@@ -11,7 +11,7 @@ const admin = require("../middleware/admin");
 const { Rental } = require("../models/rental");
 const validateRental = require("../middleware/validateRental");
 const validateObjectId = require("../middleware/validateObjectId");
-const sendVerifyEmail = require("../services/sendVerifyEmail");
+const sendEmail = require("../services/sendEmail");
 const { User } = require("../models/user");
 
 //gets either requested rentals or all rentals
@@ -105,7 +105,7 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
     return res.status(500).send("Something went wrong");
   }
 
-  sendVerifyEmail(
+  sendEmail(
     user,
     "Your rental has been approved",
     `Hello ${req.user.name},<br><br>Your rental request for ${rental.product.name} has been approved.
