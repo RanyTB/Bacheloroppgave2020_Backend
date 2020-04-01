@@ -279,6 +279,25 @@ paths:
                 $ref: "#/components/schemas/User"
         400:
           description: Invalid email or password, or user is already registered
+  /users/{userId}/rentals:
+    get:
+      tags:
+        - Users
+      summary: Returns an array of rentals that is rented by the given userId
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      description: Returns an array of rentals
+      responses:
+        200:
+          description: A JSON object representing the product
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/Rental"
+                    - $ref: "#/components/schemas/RequestedRental"
 
   /rentals:
     get:
@@ -312,7 +331,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/RequestedRental"
-                  
 
     post:
       tags:
@@ -696,8 +714,8 @@ components:
           example: "Call me at 99887766 to schedule return"
         remarks:
           type: string
-          example: "Power cable was damaged under use"    
-  
+          example: "Power cable was damaged under use"
+
   requestBodies:
     Category:
       description: A JSON object containing category information. **Parent field is optional**
