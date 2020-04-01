@@ -11,10 +11,6 @@ function validateRental(rental) {
   return schema.validate(rental);
 }
 
-//ADD JOI VALIDATION
-
-//Add id requirement in validation function for user and product
-//Checking that sub-doc id exist is not the responsibility of this module and will be placed in the corresponding route
 const rentalSchema = new Schema({
   user: {
     type: new Schema({
@@ -56,7 +52,7 @@ const rentalSchema = new Schema({
     required: true,
     default: false
   },
-  pickupInstructions: {
+  pickUpInstructions: {
     type: String
   },
   returnInstructions: {
@@ -68,12 +64,12 @@ const rentalSchema = new Schema({
 });
 
 rentalSchema.methods.confirmRental = function(
-  pickupInstructions,
+  pickUpInstructions,
   returnInstructions
 ) {
   this.dateOut = Date.now();
 
-  this.pickupInstructions = pickupInstructions;
+  this.pickUpInstructions = pickUpInstructions;
   this.returnInstructions = returnInstructions;
 
   //Set product.availableForRental to false here.

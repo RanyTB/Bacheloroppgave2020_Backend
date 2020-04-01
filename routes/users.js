@@ -7,8 +7,9 @@ const { User } = require("../models/user");
 const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
-const sendVerifyEmail = require("../services/sendVerifyEmail");
+const sendEmail = require("../services/sendEmail");
 const { Rental } = require("../models/rental");
+const config = require("config");
 
 router.get("/", auth, admin, async (req, res) => {
   const users = await User.find();
@@ -52,7 +53,13 @@ router.post("/", validateUser, async (req, res) => {
 
   const token = await user.generateEmailToken();
 
-  sendVerifyEmail(user.email, token);
+  sendEmail(
+    user,
+    "Please verify your email address",
+    `Click the following link to verify your email address ${config.get(
+      "frontendBaseURL"
+    )}/verify-email/${token}`
+  );
 
   return res.send(
     _.pick(user, ["_id", "firstName", "lastName", "email", "phone"])
