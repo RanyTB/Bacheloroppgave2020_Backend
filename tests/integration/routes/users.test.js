@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const { User } = require("../../../models/user");
 const app = require("../../../index");
 const express = require("express");
+const { Rental } = require("../../../models/rental");
+const { Product } = require("../../../models/product");
 
 app.use(express.json());
 
@@ -201,6 +203,97 @@ describe("/api/users", () => {
         .set("x-auth-token", validAdminJWTToken);
 
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe("GET /:id/rentals", () => {
+    it("should return 401 if the user that request another users rentals is not admin", async () => {
+      const nonAdmin = new User({ exampleUser });
+      const admin = new User({ exampleAdmin });
+      const nonAdminJWT = nonAdmin.generateAuthToken();
+
+      const res = await request(app)
+        .get(`/api/users/${admin._id}/rentals`)
+        .set("x-auth-token", nonAdminJWT);
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 200 if the user that requests another users rentals is an admin", async () => {
+      const nonAdmin = new User({ exampleUser });
+      const admin = new User({ exampleAdmin, isAdmin: true });
+      const adminJWT = admin.generateAuthToken();
+
+      const res = await request(app)
+        .get(`/api/users/${nonAdmin._id}/rentals`)
+        .set("x-auth-token", adminJWT);
+
+      expect(res.status).toBe(200);
+    });
+
+    it("should return 200 if a user requests it's own rentals", async () => {
+      const nonAdmin = new User({ exampleUser });
+      const nonAdminJWT = nonAdmin.generateAuthToken();
+
+      let exampleProduct = {
+        name: "ValidName",
+        category: {
+          _id: mongoose.Types.ObjectId(),
+          name: "categoryName"
+        },
+        entities: [
+          {
+            identifier: "Ex1",
+            availableForRental: true,
+            remarks: "This is a remark"
+          }
+        ],
+        numberOfLoans: 3,
+        description: "This is a description",
+        details: [
+          {
+            displayName: "detailName",
+            value: "Detail value"
+          }
+        ]
+      };
+
+      exampleProduct1 = new Product({
+        _id: mongoose.Types.ObjectId(),
+        ...exampleProduct
+      });
+      exampleProduct1.entities[0].availableForRental = true;
+
+      await exampleProduct1.save();
+
+      await request(app)
+        .post("/api/rentals/")
+        .send({ productId: exampleProduct1._id })
+        .set("x-auth-token", nonAdminJWT);
+
+      const res = await request(app)
+        .get(`/api/users/${nonAdmin._id}/rentals`)
+        .set("x-auth-token", nonAdminJWT);
+
+      expect(res.status).toBe(200);
+      expect(res.body.length).toBe(1);
+      expect(res.body[0].user._id.toString()).toBe(nonAdmin._id.toString());
+    });
+
+    it("should return 401 if no JWT token is provided", async () => {
+      const nonAdmin = new User({ exampleUser });
+      const res = await request(app)
+        .get(`/api/users/${nonAdmin._id}/rentals`)
+        .set("x-auth-token", "");
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      const nonAdmin = new User({ exampleUser });
+      const res = await request(app)
+        .get(`/api/users/${nonAdmin._id}/rentals`)
+        .set("x-auth-token", "invalid");
+      expect(res.status).toBe(400);
     });
   });
 
