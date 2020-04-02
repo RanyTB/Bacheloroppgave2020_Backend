@@ -29,13 +29,20 @@ router.get("/:id", auth, admin, validateObjectID, async (req, res) => {
 });
 
 router.get("/:id/rentals", auth, async (req, res) => {
-  const paramID = req.params.id;
-  if (!req.user.isAdmin && req.user._id !== paramID) {
+  if (!req.user.isAdmin && req.user._id !== req.params.id) {
     return res.status(401).send("Unauthorized");
   }
 
-  const rentals = await Rental.find({ "user._id": paramID });
+  if (req.query.requested === "true") {
+    const rentals = await Rental.find({
+      "user._id": req.params.id,
+      dateOut: { $exists: false },
+      dateReturned: { $exists: false }
+    });
+    return res.send(rentals);
+  }
 
+  const rentals = await Rental.find({ "user._id": req.params.id });
   res.send(rentals);
 });
 router.post("/", validateUser, async (req, res) => {

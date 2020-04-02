@@ -286,6 +286,12 @@ paths:
       summary: Returns an array of rentals that is rented by the given userId
       parameters:
         - $ref: "#/components/parameters/ObjectId"
+        - name: requested
+          in: query
+          required: true
+          description: If true, returns only requested/unprocessed rentals
+          schema:
+            type: boolean
       description: Returns an array of rentals
       responses:
         200:
