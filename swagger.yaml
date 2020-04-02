@@ -604,9 +604,6 @@ components:
                 identifier:
                   type: string
                   example: PS4_1
-                remarks:
-                  type: string
-                  example: Scratches
         confirmedReturned:
           type: boolean
           example: false
@@ -643,9 +640,6 @@ components:
                 identifier:
                   type: string
                   example: PS4_1
-                remarks:
-                  type: string
-                  example: Scratches
         confirmedReturned:
           type: boolean
           example: false
