@@ -82,12 +82,12 @@ const insertProducts = () => {
     entities: [
       {
         identifier: "PS4_1",
-        availableForRental: false,
+        availableForRental: true,
         remarks: "Scratches"
       },
       {
         identifier: "PS4_2",
-        availableForRental: true,
+        availableForRental: false,
         remarks: "Scratches"
       },
       {
@@ -97,7 +97,7 @@ const insertProducts = () => {
       },
       {
         identifier: "PS4_4",
-        availableForRental: false,
+        availableForRental: true,
         remarks: "Scratches"
       }
     ],
