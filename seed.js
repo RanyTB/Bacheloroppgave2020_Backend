@@ -59,9 +59,9 @@ const insertUsers = async () => {
   const password = await bcrypt.hash("12345678", salt);
 
   const adminUser = new User({
-    firstName: "adminFirstName",
-    lastName: "adminLastName",
-    email: "administrator@address.com",
+    firstName: "markusAdmin",
+    lastName: "hellestveitAdmin",
+    email: "markus.bikilla.hellestveit@gmail.com",
     password,
     phone: "22222222",
     isAdmin: true,
@@ -69,9 +69,9 @@ const insertUsers = async () => {
   });
 
   const regularUser = new User({
-    firstName: "regularFirstName",
-    lastName: "regularLastName",
-    email: "regularUser@address.com",
+    firstName: "markusNonAdmin",
+    lastName: "hellestveitNonAdmin",
+    email: "markus1abc@gmail.com",
     password,
     phone: "22222222",
     isActive: true
@@ -89,7 +89,7 @@ const insertProducts = () => {
     entities: [
       {
         identifier: "PS4_1",
-        availableForRental: false,
+        availableForRental: true,
         remarks: "Scratches"
       },
       {
@@ -104,7 +104,7 @@ const insertProducts = () => {
       },
       {
         identifier: "PS4_4",
-        availableForRental: false,
+        availableForRental: true,
         remarks: "Scratches"
       }
     ],
@@ -127,7 +127,7 @@ const insertProducts = () => {
     entities: [
       {
         identifier: "Switch_1",
-        availableForRental: false,
+        availableForRental: true,
         remarks: "Good condition"
       }
     ],
@@ -150,7 +150,7 @@ const insertProducts = () => {
     entities: [
       {
         identifier: "XB1_1",
-        availableForRental: false,
+        availableForRental: true,
         remarks: "Scratches"
       }
     ],
@@ -173,7 +173,7 @@ const insertProducts = () => {
     entities: [
       {
         identifier: "MP1",
-        availableForRental: false,
+        availableForRental: true,
         remarks: "Scratches"
       }
     ],
@@ -196,7 +196,7 @@ const insertProducts = () => {
     entities: [
       {
         identifier: "BS1",
-        availableForRental: false,
+        availableForRental: true,
         remarks: "Scratches"
       }
     ],
