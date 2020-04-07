@@ -19,7 +19,7 @@ router.get("/", auth, admin, async (req, res) => {
   if (req.query.requested === "true") {
     const rentals = await Rental.find({
       dateOut: { $exists: false },
-      dateReturned: { $exists: false }
+      dateReturned: { $exists: false },
     });
     return res.send(rentals);
   }
@@ -39,7 +39,7 @@ router.get("/returns/", auth, admin, async (req, res) => {
 
   const rentals = await Rental.find({
     dateReturned: { $exists: true },
-    confirmedReturned: false
+    confirmedReturned: false,
   });
   return res.send(rentals);
 });
@@ -49,7 +49,7 @@ router.post("/", auth, validateRental, async (req, res) => {
   const product = await Product.findById(req.body.productId);
   if (!product) return res.status(404).send("Product not found");
 
-  const entity = product.entities.find(entity => {
+  const entity = product.entities.find((entity) => {
     return entity.availableForRental;
   });
 
@@ -58,16 +58,16 @@ router.post("/", auth, validateRental, async (req, res) => {
   const rental = new Rental({
     user: {
       _id: req.user._id,
-      name: req.user.name
+      name: req.user.name,
     },
     product: {
       _id: product._id,
       name: product.name,
       entity: {
         _id: entity._id,
-        identifier: entity.identifier
-      }
-    }
+        identifier: entity.identifier,
+      },
+    },
   });
 
   entity.availableForRental = false;
@@ -149,7 +149,7 @@ router.patch(
     if (req.body.setAvailable) {
       const product = await Product.findById(rental.product._id);
 
-      const entity = product.entities.find(entity => {
+      const entity = product.entities.find((entity) => {
         return entity._id.toString() === rental.product.entity._id.toString();
       });
 
@@ -172,5 +172,33 @@ router.patch(
     }
   }
 );
+
+router.delete("/:id", auth, admin, validateObjectId, async (req, res) => {
+  const rental = await Rental.findByIdAndDelete(req.params.id);
+  if (!rental) return res.status(404).send("Cannot find rental with given ID");
+
+  if (!req.body.notifyUser) {
+    return res.send(rental);
+  }
+  const user = await User.findById(rental.user._id);
+  if (!user) {
+    return res
+      .status(500)
+      .send(
+        "UserID in rental does not exist or database is down! Mail not sent."
+      );
+  }
+
+  sendEmail(
+    user,
+    "Your rental has been rejected",
+    `Hello ${user.firstName},<br><br>Your rental request for ${
+      rental.product.name
+    } has been rejected.
+    <br><br>${req.body.deleteReason ? `Reason: ${req.body.deleteReason}` : ""}`
+  );
+
+  return res.send(rental);
+});
 
 module.exports = router;
