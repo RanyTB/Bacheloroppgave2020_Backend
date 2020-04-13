@@ -31,7 +31,9 @@ describe("api/auth", () => {
         .post("/api/users")
         .send({ ...exampleAuthUser });
 
-      const user = await User.findOne({ email: exampleAuthUser.email });
+      const user = await User.findOne({
+        email: exampleAuthUser.email.toLowerCase()
+      });
 
       if (user) {
         user.isActive = isActive;

@@ -10,61 +10,61 @@ const exampleUser = {
   lastName: "adminLastName",
   email: "administrator@address.com",
   password: "adminPassword",
-  phone: "22222222"
+  phone: "22222222",
 };
 
 const exampleProduct = {
   name: "ValidName",
   category: {
     _id: mongoose.Types.ObjectId(),
-    name: "categoryName"
+    name: "categoryName",
   },
   entities: [
     {
       identifier: "Ex1",
       availableForRental: true,
-      remarks: "This is a remark"
-    }
+      remarks: "This is a remark",
+    },
   ],
   numberOfLoans: 3,
   description: "This is a description",
   details: [
     {
       displayName: "detailName",
-      value: "Detail value"
-    }
-  ]
+      value: "Detail value",
+    },
+  ],
 };
 
 const unprocessedRental = {
   user: {
     _id: "notSet",
-    name: exampleUser.firstName + " " + exampleUser.lastName
+    name: exampleUser.firstName + " " + exampleUser.lastName,
   },
   product: {
     _id: mongoose.Types.ObjectId(),
     name: exampleProduct.name,
     entity: {
-      identifier: exampleProduct.entities[0].identifier
-    }
-  }
+      identifier: exampleProduct.entities[0].identifier,
+    },
+  },
 };
 
 const processedRental = {
   user: {
     _id: "notSet",
-    name: exampleUser.firstName + " " + exampleUser.lastName
+    name: exampleUser.firstName + " " + exampleUser.lastName,
   },
   product: {
     _id: mongoose.Types.ObjectId(),
     name: exampleProduct.name,
     entity: {
-      identifier: exampleProduct.entities[0].identifier
-    }
+      identifier: exampleProduct.entities[0].identifier,
+    },
   },
   dateOut: Date.now(),
   pickUpInstructions: "Pickup instructions here",
-  returnInstructions: "return instructions here"
+  returnInstructions: "return instructions here",
 };
 
 describe("/api/rentals", () => {
@@ -205,7 +205,7 @@ describe("/api/rentals", () => {
     exec = async () => {
       exampleProduct1 = new Product({
         _id: exampleId1,
-        ...exampleProduct
+        ...exampleProduct,
       });
       exampleProduct1.entities[0].availableForRental = availableForRental;
 
@@ -216,7 +216,7 @@ describe("/api/rentals", () => {
       const res = await request(app)
         .post("/api/rentals")
         .send({
-          productId: exampleProduct1._id
+          productId: exampleProduct1._id,
         })
         .set("x-auth-token", validAdminToken);
 
@@ -237,7 +237,7 @@ describe("/api/rentals", () => {
       const res = await request(app)
         .post("/api/rentals")
         .send({
-          productId: mongoose.Types.ObjectId()
+          productId: mongoose.Types.ObjectId(),
         })
         .set("x-auth-token", validAdminToken);
 
@@ -251,7 +251,7 @@ describe("/api/rentals", () => {
       const res = await request(app)
         .post("/api/rentals")
         .send({
-          productId: exampleProduct1._id
+          productId: exampleProduct1._id,
         })
         .set("x-auth-token", validAdminToken);
 
@@ -538,6 +538,76 @@ describe("/api/rentals", () => {
     it("should return 403 if user is not admin", async () => {
       JWTToken = validNonAdminToken;
       const res = await exec();
+
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe("DELETE /:id", () => {
+    let rentalId;
+    let JWTToken;
+
+    beforeEach(async () => {
+      const rental = new Rental({ ...processedRental });
+      await rental.save();
+      await nonAdminUser.save();
+
+      rentalId = rental._id;
+      JWTToken = validAdminToken;
+    });
+
+    it("should delete rental with given ID", async () => {
+      const res = await request(app)
+        .delete(`/api/rentals/${rentalId}`)
+        .set("x-auth-token", JWTToken);
+      const allRentals = await request(app)
+        .get("/api/rentals")
+        .set("x-auth-token", JWTToken);
+
+      expect(res.status).toBe(200);
+      expect(allRentals.body.length).toBe(0);
+    });
+    it("should return 404 if an item with the given ObjectId doesn't exist", async () => {
+      rentalId = mongoose.Types.ObjectId();
+      const res = await request(app)
+        .delete(`/api/rentals/${rentalId}`)
+        .set("x-auth-token", JWTToken);
+      expect(res.status).toBe(404);
+    });
+
+    it("Should return 400 if the ID provided is invalid", async () => {
+      rentalId = "";
+      const res = await request(app)
+        .delete(`/api/rentals/${rentalId}`)
+        .set("x-auth-token", JWTToken);
+      expect(res.status).toBe(404);
+    });
+
+    it("should return 401 if no JWT token is provided", async () => {
+      JWTToken = "";
+
+      const res = await request(app)
+        .delete(`/api/rentals/${rentalId}`)
+        .set("x-auth-token", JWTToken);
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 400 if JWT token is invalid", async () => {
+      JWTToken = "invalid";
+
+      const res = await request(app)
+        .delete(`/api/rentals/${rentalId}`)
+        .set("x-auth-token", JWTToken);
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 403 if JWT token is not of an admin user", async () => {
+      JWTToken = validNonAdminToken;
+
+      const res = await request(app)
+        .delete(`/api/rentals/${rentalId}`)
+        .set("x-auth-token", JWTToken);
 
       expect(res.status).toBe(403);
     });

@@ -305,6 +305,40 @@ paths:
                     - $ref: "#/components/schemas/Rental"
                     - $ref: "#/components/schemas/RequestedRental"
 
+  /rentals/{id}:
+    delete:
+      tags:
+        - Rentals
+      summary: Delete rental
+      description: Delete rental with given ID
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        description: Whether to notify user of rental rejection and the reason for rejection
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notifyUser:
+                  type: boolean
+                  example: true
+                deleteMessage:
+                  type: string
+                  example: Can't find it.
+
+      responses:
+        "200":
+          description: Renturn deleted rental.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/RequestedRental"
+
   /rentals:
     get:
       tags:
@@ -610,9 +644,6 @@ components:
                 identifier:
                   type: string
                   example: PS4_1
-                remarks:
-                  type: string
-                  example: Scratches
         confirmedReturned:
           type: boolean
           example: false
@@ -649,9 +680,6 @@ components:
                 identifier:
                   type: string
                   example: PS4_1
-                remarks:
-                  type: string
-                  example: Scratches
         confirmedReturned:
           type: boolean
           example: false
