@@ -13,6 +13,7 @@ const validateRental = require("../middleware/validateRental");
 const validateObjectId = require("../middleware/validateObjectId");
 const sendEmail = require("../services/sendEmail");
 const { User } = require("../models/user");
+const schedule = require("node-schedule");
 
 //gets either requested rentals or all rentals
 router.get("/", auth, admin, async (req, res) => {
@@ -91,9 +92,13 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
   const rental = await Rental.findById(req.params.id);
   if (!rental) return res.status(404).send("Rental not found");
 
+  let dateToReturn = new Date();
+  dateToReturn.setDate(dateToReturn.getDate() + 7);
+
   rental.confirmRental(
     req.body.pickUpInstructions,
-    req.body.returnInstructions
+    req.body.returnInstructions,
+    dateToReturn
   );
 
   const user = await User.findById(rental.user._id);
@@ -111,6 +116,20 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
     `Hello ${user.firstName},<br><br>Your rental request for ${rental.product.name} has been approved.
     <br><br>Pick up instructions: ${rental.pickUpInstructions}<br>return instructions: ${rental.returnInstructions}`
   );
+
+  let notifyDate = new Date();
+  notifyDate.setDate(dateToReturn.getDate() - 1);
+
+  date.setMinutes(notifyDate);
+  var j = schedule.scheduleJob(date, () => {
+    if (!rental.confirmedReturned) {
+      sendEmail(
+        user,
+        `You have one day left to return the ${rental.product.name} you borrowed`,
+        `Please return it according to the return instructions: ${rental.returnInstructions}`
+      );
+    }
+  });
 
   await rental.save();
   res.send(rental);
