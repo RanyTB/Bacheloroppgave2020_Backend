@@ -191,6 +191,19 @@ paths:
               schema:
                 type: string
                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjYjE3NWUwYjNiZDM2NGNjMmZmYjgiLCJuYW1lIjoiZmlyc3ROYW1lMSBsYXN0TmFtZTdEiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNTg0MzYxOTg4fQ.FsUbFWHD9AwI7UfxGwDUKtVtvwVfNg7Mo7vacsARG64
+  /auth/token/{JWT}:
+    post:
+      tags:
+        - Auth
+      summary: Let user verify email
+      description: Activate users account
+      parameters:
+        - $ref: "#/components/parameters/JWT"
+      responses:
+        200:
+          description: Account activated
+        400:
+          description: Invalid token
 
   /users/{id}:
     get:
@@ -974,6 +987,14 @@ components:
         type: string
         minimum: 24
         example: 5e539c042f9afe16e09ca244
+    JWT:
+      name: JWT
+      in: path
+      description: JSON Web Token
+      required: true
+      schema:
+        type: string
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTg0ODhkYmRlOTExMjJiODBiZjFjN2YiLCJlbWFpbCI6Im1hcmt1czFhYmNAZ21haWwuY29tIiwiaWF0IjoxNTg1NzQ0MDkxfQ.ZyUfmqU-UjM4iZz6RJfmKa0H2FoKAPte8tquzsUJ8js
 
   securitySchemes:
     Auth-Token:
