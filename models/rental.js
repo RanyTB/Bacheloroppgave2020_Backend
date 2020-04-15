@@ -6,7 +6,7 @@ Joi.objectId = require("joi-objectid")(Joi);
 function validateRental(rental) {
   const schema = Joi.object({
     productId: Joi.objectId().required(),
-    userId: Joi.objectId().required()
+    userId: Joi.objectId().required(),
   });
   return schema.validate(rental);
 }
@@ -18,56 +18,61 @@ const rentalSchema = new Schema({
         type: String,
         minlength: 2,
         maxlength: 510,
-        required: true
-      }
+        required: true,
+      },
     }),
-    required: true
+    required: true,
   },
   product: {
     type: new Schema({
       name: {
         type: String,
-        required: true
+        required: true,
       },
       entity: {
         type: new Schema({
           identifier: {
             type: String,
-            required: true
-          }
+            required: true,
+          },
         }),
-        required: true
-      }
+        required: true,
+      },
     }),
-    required: true
+    required: true,
   },
   dateOut: {
-    type: Date
+    type: Date,
   },
   dateReturned: {
-    type: Date
+    type: Date,
   },
   confirmedReturned: {
     type: Boolean,
     required: true,
-    default: false
+    default: false,
   },
   pickUpInstructions: {
-    type: String
+    type: String,
   },
   returnInstructions: {
-    type: String
+    type: String,
   },
   remarks: {
-    type: String
-  }
+    type: String,
+  },
+  dateToReturn: {
+    type: Date,
+  },
 });
 
-rentalSchema.methods.confirmRental = function(
+rentalSchema.methods.confirmRental = function (
   pickUpInstructions,
-  returnInstructions
+  returnInstructions,
+  dateToReturn
 ) {
   this.dateOut = Date.now();
+  this.dateToReturn = dateToReturn;
 
   this.pickUpInstructions = pickUpInstructions;
   this.returnInstructions = returnInstructions;
@@ -75,7 +80,7 @@ rentalSchema.methods.confirmRental = function(
   //Set product.availableForRental to false here.
 };
 
-rentalSchema.methods.markAsReturned = function(remarks) {
+rentalSchema.methods.markAsReturned = function (remarks) {
   this.dateReturned = Date.now();
 
   if (remarks) {
@@ -83,7 +88,7 @@ rentalSchema.methods.markAsReturned = function(remarks) {
   }
 };
 
-rentalSchema.methods.confirmReturn = function() {
+rentalSchema.methods.confirmReturn = function () {
   this.confirmedReturned = true;
 };
 
