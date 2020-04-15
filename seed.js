@@ -94,7 +94,7 @@ const insertProducts = () => {
       },
       {
         identifier: "PS4_2",
-        availableForRental: true,
+        availableForRental: false,
         remarks: "Scratches"
       },
       {

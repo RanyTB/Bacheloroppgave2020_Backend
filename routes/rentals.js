@@ -86,7 +86,7 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
   if (!req.body.pickUpInstructions || !req.body.returnInstructions) {
     return res
       .status(400)
-      .send("Missing pickupInstructions or returnInstructions in request body");
+      .send("Missing pickUpInstructions or returnInstructions in request body");
   }
 
   const rental = await Rental.findById(req.params.id);

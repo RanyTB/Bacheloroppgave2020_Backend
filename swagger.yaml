@@ -286,6 +286,12 @@ paths:
       summary: Returns an array of rentals that is rented by the given userId
       parameters:
         - $ref: "#/components/parameters/ObjectId"
+        - name: requested
+          in: query
+          required: true
+          description: If true, returns only requested/unprocessed rentals
+          schema:
+            type: boolean
       description: Returns an array of rentals
       responses:
         200:
@@ -321,7 +327,6 @@ paths:
                 deleteMessage:
                   type: string
                   example: Can't find it.
-
       responses:
         "200":
           description: Renturn deleted rental.
@@ -332,6 +337,41 @@ paths:
                 items:
                   oneOf:
                     - $ref: "#/components/schemas/RequestedRental"
+
+    patch:
+      tags:
+        - Rentals
+      summary: Confirms a rental (Admin functionality)
+      description: Used to confirm a rental and send an email to the user connected to the rental. This sets the properties pickupInstructions, returnInstructions and dateOut.
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pickupInstructions:
+                  type: string
+                  example: Pick up at Ole Brumms vei 1 between 16:00 - 21:00. Call me on 99887766.
+                returnInstructions:
+                  type: string
+                  example: Return at same spot.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ConfirmedRental"
+        "400":
+          description: Invalid request body. Should contain pickupInstructions and returnInstructions
+        "404":
+          description: Rental with given ID not found
+        "500":
+          description: ID of user in rental body does not exist in user collection in database.
 
   /rentals:
     get:
@@ -417,10 +457,11 @@ paths:
                   confirmedReturned:
                     type: boolean
                     example: false
+
   /rentals/returns:
     get:
       tags:
-        - Rentals
+        - Returns
       summary: Get returns
       description: Get unprocessed returns or all returns
       parameters:
@@ -447,6 +488,68 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/UnprocessedReturn"
+
+  /rentals/returns/{id}:
+    post:
+      tags:
+        - Returns
+      summary: Requests a return.
+      description: Use to request confirmation of a return when a user has returned an item. This sets "dateReturned" property to current date.
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        description: A JSON object containing remarks property.
+        content:
+          application/json:
+            schema:
+              required:
+                - null
+              type: object
+              properties:
+                remarks:
+                  type: string
+                  example: Got some new scratches during transport.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestedRental"
+        "400":
+          description: User requesting return does not has the same ID as in the rental.
+        "404":
+          description: Rental with given ID not found.
+
+    patch:
+      tags:
+        - Returns
+      summary: Confirms a return
+      description: Use to confirm a return. This sets the confirmReturned field and marks the end of the rental lifecycle.
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        description: A JSON object containing a setAvailable property to determine wether the entity is to be set as available for rental or not.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                setAvailable:
+                  type: boolean
+                  example: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestedRental"
+        "400":
+          description: Request body missing setAvailable field.
+        "404":
+          description: Rental with given ID not found.
 
 components:
   schemas:
