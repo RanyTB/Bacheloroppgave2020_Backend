@@ -497,6 +497,18 @@ paths:
       description: Use to request confirmation of a return when a user has returned an item. This sets "dateReturned" property to current date.
       parameters:
         - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        description: A JSON object containing remarks property.
+        content:
+          application/json:
+            schema:
+              required:
+                - null
+              type: object
+              properties:
+                remarks:
+                  type: string
+                  example: Got some new scratches during transport.
       responses:
         "200":
           description: OK
