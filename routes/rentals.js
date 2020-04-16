@@ -174,8 +174,11 @@ router.patch(
 
       entity.availableForRental = true;
 
+      const rentalUpdateObject = { confirmedReturned: true };
+      if (!rental.dateReturned) rentalUpdateObject.dateReturned = new Date();
+
       const task = Fawn.Task();
-      task.update("rentals", { _id: rental._id }, { confirmedReturned: true });
+      task.update("rentals", { _id: rental._id }, rentalUpdateObject);
       task.update(
         "products",
         { _id: product._id },
