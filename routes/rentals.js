@@ -72,10 +72,15 @@ router.post("/", auth, validateRental, async (req, res) => {
   });
 
   entity.availableForRental = false;
+  product.numberOfLoans++;
 
   const task = Fawn.Task();
   task.save("rentals", rental);
-  task.update("products", { _id: product._id }, { entities: product.entities });
+  task.update(
+    "products",
+    { _id: product._id },
+    { entities: product.entities, $inc: { numberOfLoans: 1 } }
+  );
 
   await task.run();
   res.send(rental);
