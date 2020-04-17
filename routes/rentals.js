@@ -125,8 +125,7 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
   let notifyDate = new Date();
   notifyDate.setDate(dateToReturn.getDate() - 1);
 
-  date.setMinutes(notifyDate);
-  var j = schedule.scheduleJob(date, () => {
+  var j = schedule.scheduleJob(notifyDate, () => {
     if (!rental.confirmedReturned) {
       sendEmail(
         user,
