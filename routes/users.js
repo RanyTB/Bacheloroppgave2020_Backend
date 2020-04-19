@@ -7,7 +7,9 @@ const { User } = require("../models/user");
 const bcrypt = require("bcrypt");
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
-const sendVerifyEmail = require("../services/sendVerifyEmail");
+const sendEmail = require("../services/sendEmail");
+const { Rental } = require("../models/rental");
+const config = require("config");
 
 router.get("/", auth, admin, async (req, res) => {
   const users = await User.find();
@@ -26,13 +28,31 @@ router.get("/:id", auth, admin, validateObjectID, async (req, res) => {
   res.send(user);
 });
 
+router.get("/:id/rentals", auth, async (req, res) => {
+  if (!req.user.isAdmin && req.user._id !== req.params.id) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  if (req.query.requested === "true") {
+    const rentals = await Rental.find({
+      "user._id": req.params.id,
+      dateOut: { $exists: false },
+      dateReturned: { $exists: false }
+    });
+    return res.send(rentals);
+  }
+
+  const rentals = await Rental.find({ "user._id": req.params.id });
+  res.send(rentals);
+});
 router.post("/", validateUser, async (req, res) => {
-  let user = await User.findOne({ email: req.body.email });
+  let user = await User.findOne({ email: req.body.email.toLowerCase() });
   if (user) return res.status(400).send("User is already registered");
 
   user = new User(
     _.pick(req.body, ["firstName", "lastName", "email", "password", "phone"])
   );
+  user.email = user.email.toLowerCase();
 
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
@@ -41,7 +61,13 @@ router.post("/", validateUser, async (req, res) => {
 
   const token = await user.generateEmailToken();
 
-  sendVerifyEmail(user.email, token);
+  sendEmail(
+    user,
+    "Please verify your email address",
+    `Click the following link to verify your email address ${config.get(
+      "frontendBaseURL"
+    )}/verify-email/${token}`
+  );
 
   return res.send(
     _.pick(user, ["_id", "firstName", "lastName", "email", "phone"])

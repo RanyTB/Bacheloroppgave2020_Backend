@@ -1,7 +1,6 @@
 const nodemailer = require("nodemailer");
-const config = require("config");
 
-module.exports = async (emailAddress, token) => {
+module.exports = async (user, subject, message) => {
   let transporter = nodemailer.createTransport({
     host: "smtp.sendgrid.net",
     port: 465,
@@ -15,11 +14,9 @@ module.exports = async (emailAddress, token) => {
 
   await transporter.sendMail({
     from: '"Markus 👻" <markus1abc@gmail.com>',
-    to: emailAddress,
-    subject: "Hello ✔",
+    to: user.email,
+    subject,
     text: ``,
-    html: `Click the following link to verify your email address ${config.get(
-      "frontendBaseURL"
-    )}/verify-email/${token}`
+    html: message
   });
 };

@@ -1,4 +1,4 @@
-const { validateUser, User } = require("../models/user");
+const { validateUser } = require("../models/user");
 
 module.exports = async (req, res, next) => {
   const user = req.body;

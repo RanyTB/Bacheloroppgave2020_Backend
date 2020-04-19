@@ -10,8 +10,7 @@ tags:
   - name: Products
   - name: Auth
   - name: Users
-
-
+  - name: Rentals
 
 paths:
   /categories/{id}:
@@ -192,6 +191,19 @@ paths:
               schema:
                 type: string
                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTZjYjE3NWUwYjNiZDM2NGNjMmZmYjgiLCJuYW1lIjoiZmlyc3ROYW1lMSBsYXN0TmFtZTdEiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNTg0MzYxOTg4fQ.FsUbFWHD9AwI7UfxGwDUKtVtvwVfNg7Mo7vacsARG64
+  /auth/token/{JWT}:
+    post:
+      tags:
+        - Auth
+      summary: Let user verify email
+      description: Activate users account
+      parameters:
+        - $ref: "#/components/parameters/JWT"
+      responses:
+        200:
+          description: Account activated
+        400:
+          description: Invalid token
 
   /users/{id}:
     get:
@@ -280,14 +292,279 @@ paths:
                 $ref: "#/components/schemas/User"
         400:
           description: Invalid email or password, or user is already registered
+  /users/{userId}/rentals:
+    get:
+      tags:
+        - Users
+      summary: Returns an array of rentals that is rented by the given userId
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+        - name: requested
+          in: query
+          required: true
+          description: If true, returns only requested/unprocessed rentals
+          schema:
+            type: boolean
+      description: Returns an array of rentals
+      responses:
+        200:
+          description: A JSON object representing the product
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/Rental"
+                    - $ref: "#/components/schemas/RequestedRental"
+
+  /rentals/{id}:
+    delete:
+      tags:
+        - Rentals
+      summary: Delete rental
+      description: Delete rental with given ID
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        description: Whether to notify user of rental rejection and the reason for rejection
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notifyUser:
+                  type: boolean
+                  example: true
+                deleteMessage:
+                  type: string
+                  example: Can't find it.
+      responses:
+        "200":
+          description: Renturn deleted rental.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/RequestedRental"
+
+    patch:
+      tags:
+        - Rentals
+      summary: Confirms a rental (Admin functionality)
+      description: Used to confirm a rental and send an email to the user connected to the rental. This sets the properties pickupInstructions, returnInstructions and dateOut.
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pickupInstructions:
+                  type: string
+                  example: Pick up at Ole Brumms vei 1 between 16:00 - 21:00. Call me on 99887766.
+                returnInstructions:
+                  type: string
+                  example: Return at same spot.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ConfirmedRental"
+        "400":
+          description: Invalid request body. Should contain pickupInstructions and returnInstructions
+        "404":
+          description: Rental with given ID not found
+        "500":
+          description: ID of user in rental body does not exist in user collection in database.
+
+  /rentals:
+    get:
+      tags:
+        - Rentals
+      summary: Get rentals
+      description: Get all rentals or only requested/unprocessed rentals
+      parameters:
+        - name: requested
+          in: query
+          required: true
+          description: If true, returns only requested/unprocessed rentals
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Returns all rentals.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/ConfirmedRental"
+                    - $ref: "#/components/schemas/RequestedRental"
+        "202":
+          description: Returns requested rentals only.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RequestedRental"
+
+    post:
+      tags:
+        - Rentals
+      summary: Create a new rental
+      description: Let user rent an item
+      requestBody:
+        $ref: "#/components/requestBodies/Rental"
+      responses:
+        200:
+          description: Returns the new rental
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: 5e6106c3b3817f3a88be0860
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 5e6106c3b3817f3a88be0860
+                      name:
+                        type: string
+                        example: John Johnson
+                  product:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 5e6106c3b3817f3a88be0860
+                      name:
+                        type: string
+                        example: Playstation 4
+                      entity:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                            example: 5e6106c3b3817f3a88be0860
+                          identifier:
+                            type: string
+                            example: PS4_1
+                          remarks:
+                            type: string
+                            example: Scratches
+                  confirmedReturned:
+                    type: boolean
+                    example: false
+
+  /rentals/returns:
+    get:
+      tags:
+        - Returns
+      summary: Get returns
+      description: Get unprocessed returns or all returns
+      parameters:
+        - name: processed
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Returns an array of all returns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/Rental"
+                    - $ref: "#/components/schemas/UnprocessedReturn"
+        "202":
+          description: Returns an array of only unprocessed returns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UnprocessedReturn"
+
+  /rentals/returns/{id}:
+    post:
+      tags:
+        - Returns
+      summary: Requests a return.
+      description: Use to request confirmation of a return when a user has returned an item. This sets "dateReturned" property to current date.
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        description: A JSON object containing remarks property.
+        content:
+          application/json:
+            schema:
+              required:
+                - null
+              type: object
+              properties:
+                remarks:
+                  type: string
+                  example: Got some new scratches during transport.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestedRental"
+        "400":
+          description: User requesting return does not has the same ID as in the rental.
+        "404":
+          description: Rental with given ID not found.
+
+    patch:
+      tags:
+        - Returns
+      summary: Confirms a return
+      description: Use to confirm a return. This sets the confirmReturned field and marks the end of the rental lifecycle.
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      requestBody:
+        description: A JSON object containing a setAvailable property to determine wether the entity is to be set as available for rental or not.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                setAvailable:
+                  type: boolean
+                  example: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestedRental"
+        "400":
+          description: Request body missing setAvailable field.
+        "404":
+          description: Rental with given ID not found.
 
 components:
-  securitySchemes:
-    bearerAuth: # arbitrary name for the security scheme
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
   schemas:
     Category:
       type: object
@@ -388,6 +665,200 @@ components:
         phone:
           type: string
           example: "48927401"
+    Rental:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        user:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: John Johnson
+        product:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: Playstation 4
+            entity:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  example: 5e6106c3b3817f3a88be0860
+                identifier:
+                  type: string
+                  example: PS4_1
+                remarks:
+                  type: string
+                  example: Scratches
+        dateOut:
+          type: string
+          format: date-time
+          example: 2020-01-01T17:32:28Z
+        dateReturned:
+          type: string
+          format: date-time
+          example: 2020-01-10T17:32:28Z
+        confirmedReturned:
+          type: boolean
+          example: true
+        pickupInstructions:
+          type: string
+          example: "Pick up at the mall. Call 99887766 when there"
+        returnInstructions:
+          type: string
+          example: "Call me at 99887766 to schedule return"
+        remarks:
+          type: string
+          example: "Power cable was damaged under use"
+    RequestedRental:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        user:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: John Johnson
+        product:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: Playstation 4
+            entity:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  example: 5e6106c3b3817f3a88be0860
+                identifier:
+                  type: string
+                  example: PS4_1
+        confirmedReturned:
+          type: boolean
+          example: false
+    ConfirmedRental:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        user:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: John Johnson
+        product:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: Playstation 4
+            entity:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  example: 5e6106c3b3817f3a88be0860
+                identifier:
+                  type: string
+                  example: PS4_1
+        confirmedReturned:
+          type: boolean
+          example: false
+        pickupInstructions:
+          type: string
+          example: "Pick up at the mall. Call 99887766 when there"
+        returnInstructions:
+          type: string
+          example: "Call me at 99887766 to schedule return"
+        dateOut:
+          type: string
+          format: date-time
+          example: 2020-01-01T17:32:28Z
+    UnprocessedReturn:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        user:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: John Johnson
+        product:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+            name:
+              type: string
+              example: Playstation 4
+            entity:
+              type: object
+              properties:
+                _id:
+                  type: string
+                  example: 5e6106c3b3817f3a88be0860
+                identifier:
+                  type: string
+                  example: PS4_1
+                remarks:
+                  type: string
+                  example: Scratches
+        dateOut:
+          type: string
+          format: date-time
+          example: 2020-01-01T17:32:28Z
+        dateReturned:
+          type: string
+          format: date-time
+          example: 2020-01-10T17:32:28Z
+        confirmedReturned:
+          type: boolean
+          example: false
+        pickupInstructions:
+          type: string
+          example: "Pick up at the mall. Call 99887766 when there"
+        returnInstructions:
+          type: string
+          example: "Call me at 99887766 to schedule return"
+        remarks:
+          type: string
+          example: "Power cable was damaged under use"
 
   requestBodies:
     Category:
@@ -494,6 +965,17 @@ components:
               password:
                 type: string
                 example: PasswordForJosh_Johnson
+    Rental:
+      description: A JSON object containing the productId
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              productId:
+                type: string
+                example: 5e539c042f9afe16e09ca244
 
   parameters:
     ObjectId:
@@ -505,10 +987,20 @@ components:
         type: string
         minimum: 24
         example: 5e539c042f9afe16e09ca244
+    JWT:
+      name: JWT
+      in: path
+      description: JSON Web Token
+      required: true
+      schema:
+        type: string
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTg0ODhkYmRlOTExMjJiODBiZjFjN2YiLCJlbWFpbCI6Im1hcmt1czFhYmNAZ21haWwuY29tIiwiaWF0IjoxNTg1NzQ0MDkxfQ.ZyUfmqU-UjM4iZz6RJfmKa0H2FoKAPte8tquzsUJ8js
 
   securitySchemes:
-    bearerAuth:           
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    Auth-Token:
+      type: apiKey
+      in: header
+      name: x-auth-token
 
+security:
+  - Auth-Token: []
