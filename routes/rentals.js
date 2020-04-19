@@ -72,10 +72,15 @@ router.post("/", auth, validateRental, async (req, res) => {
   });
 
   entity.availableForRental = false;
+  product.numberOfLoans++;
 
   const task = Fawn.Task();
   task.save("rentals", rental);
-  task.update("products", { _id: product._id }, { entities: product.entities });
+  task.update(
+    "products",
+    { _id: product._id },
+    { entities: product.entities, $inc: { numberOfLoans: 1 } }
+  );
 
   await task.run();
   res.send(rental);
@@ -175,8 +180,11 @@ router.patch(
 
       entity.availableForRental = true;
 
+      const rentalUpdateObject = { confirmedReturned: true };
+      if (!rental.dateReturned) rentalUpdateObject.dateReturned = new Date();
+
       const task = Fawn.Task();
-      task.update("rentals", { _id: rental._id }, { confirmedReturned: true });
+      task.update("rentals", { _id: rental._id }, rentalUpdateObject);
       task.update(
         "products",
         { _id: product._id },
@@ -196,6 +204,14 @@ router.patch(
 router.delete("/:id", auth, admin, validateObjectId, async (req, res) => {
   const rental = await Rental.findByIdAndDelete(req.params.id);
   if (!rental) return res.status(404).send("Cannot find rental with given ID");
+
+  const product = await Product.findById(rental.product._id);
+  const entity = product.entities.find((entity) => {
+    return entity._id.toString() === rental.product.entity._id.toString();
+  });
+
+  entity.availableForRental = true;
+  await product.save();
 
   if (!req.body.notifyUser) {
     return res.send(rental);

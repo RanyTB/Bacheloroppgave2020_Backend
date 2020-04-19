@@ -90,6 +90,7 @@ rentalSchema.methods.markAsReturned = function (remarks) {
 
 rentalSchema.methods.confirmReturn = function () {
   this.confirmedReturned = true;
+  if (!this.dateReturned) this.dateReturned = new Date();
 };
 
 const Rental = mongoose.model("rental", rentalSchema);
