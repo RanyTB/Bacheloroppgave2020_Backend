@@ -33,7 +33,7 @@ router.get("/", auth, admin, async (req, res) => {
 router.get("/returns/", auth, admin, async (req, res) => {
   const processed = req.query.processed;
 
-  if (processed) {
+  if (processed === "true") {
     const rentals = await Rental.find({ confirmedReturned: true });
     return res.send(rentals);
   }
@@ -120,10 +120,9 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
   let notifyDate = new Date();
   notifyDate.setDate(dateToReturn.getDate() - 1);
 
-  var j = schedule.scheduleJob(date, () => {
-    const rental = await Rental.findById(req.params.id)
-    const user = await User.findById(rental.user._id)
-    
+  var j = schedule.scheduleJob(notifyDate, () => {
+    const user = await User.findById(rental.user._id);
+    const rental = await Rental.findById(req.params.id);
     if (!rental.confirmedReturned) {
       sendEmail(
         user,
