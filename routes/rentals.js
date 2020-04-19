@@ -120,7 +120,7 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
   let notifyDate = new Date();
   notifyDate.setDate(dateToReturn.getDate() - 1);
 
-  var j = schedule.scheduleJob(notifyDate, () => {
+  var j = schedule.scheduleJob(notifyDate, async () => {
     const user = await User.findById(rental.user._id);
     const rental = await Rental.findById(req.params.id);
     if (!rental.confirmedReturned) {
