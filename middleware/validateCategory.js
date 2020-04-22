@@ -7,11 +7,29 @@ module.exports = async (req, res, next) => {
   if (error) return res.status(400).send("Could not create category: " + error);
 
   if (req.method !== "PUT") {
-    const existingCategory = await Category.findOne({ name: category.name });
-    if (existingCategory)
+    const existingCategories = await Category.find({
+      name: category.name,
+    });
+
+    let hasDuplicate = false;
+
+    existingCategories.forEach((existingCategory) => {
+      if (!existingCategory.parent && !category.parent) hasDuplicate = true;
+
+      if (
+        existingCategory.parent &&
+        category.parent &&
+        existingCategory.parent._id.toString() ===
+          category.parent._id.toString()
+      )
+        hasDuplicate = true;
+    });
+
+    if (hasDuplicate) {
       return res
         .status(400)
         .send(`Category with name ${category.name} already exists!`);
+    }
   }
 
   if (category.parent) {
