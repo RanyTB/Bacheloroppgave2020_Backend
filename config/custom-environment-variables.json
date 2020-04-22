@@ -1,3 +1,4 @@
 {
-  "jwtPrivateKey": "borrowMyTech_jwtPrivateKey"
+  "jwtPrivateKey": "borrowMyTech_jwtPrivateKey",
+  "DB_URI": "MONGODB_URI"
 }
