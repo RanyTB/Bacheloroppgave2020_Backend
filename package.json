@@ -4,7 +4,8 @@
   "description": "NodeJS/Express server for the project",
   "main": "index.js",
   "scripts": {
-    "test": "jest --runInBand --watchAll --verbose --coverage"
+    "test": "jest --runInBand --watchAll --verbose --coverage",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
