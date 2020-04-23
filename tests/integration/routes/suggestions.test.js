@@ -123,4 +123,74 @@ describe("/api/suggestions", () => {
       expect(res.status).toBe(401);
     });
   });
+
+  describe("DELETE /", () => {
+    let suggestionId;
+    let currentAdminToken;
+
+    beforeEach(async () => {
+      currentAdminToken = adminToken;
+      const suggestion = new Suggestion({
+        name: "name",
+        suggestion: "buy playstation 5",
+      });
+      await suggestion.save();
+      suggestionId = suggestion._id;
+    });
+
+    const exec = () => {
+      return request(app)
+        .delete(`/api/suggestions/${suggestionId}`)
+        .set("x-auth-token", currentAdminToken);
+    };
+
+    it("should delete rental with given ID", async () => {
+      let allSuggestions = await request(app)
+        .get("/api/suggestions")
+        .set("x-auth-token", currentAdminToken);
+
+      expect(allSuggestions.body.length).toBe(1);
+
+      const res = await exec();
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty("_id");
+
+      allSuggestions = await request(app)
+        .get("/api/suggestions")
+        .set("x-auth-token", currentAdminToken);
+      expect(allSuggestions.body.length).toBe(0);
+    });
+
+    it("should return 404 if the suggestion with the given ID does not exist", async () => {
+      suggestionId = mongoose.Types.ObjectId();
+      res = await exec();
+      expect(res.status).toBe(404);
+    });
+
+    it("should return 400 if suggestionId is invalid", async () => {
+      suggestionId = "invalid";
+      res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should reutn 400 if JWT token is invalid", async () => {
+      currentAdminToken = "invalid";
+      res = await exec();
+      expect(res.status).toBe(400);
+    });
+
+    it("should return 401 if no JWT is provided", async () => {
+      currentAdminToken = "";
+      res = await exec();
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should return 403 if JWT token is not of an admin user", async () => {
+      currentAdminToken = nonAdminToken;
+      res = await exec();
+
+      expect(res.status).toBe(403);
+    });
+  });
 });
