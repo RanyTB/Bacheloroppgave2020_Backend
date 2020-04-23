@@ -2,11 +2,8 @@ const request = require("supertest");
 const mongoose = require("mongoose");
 const { User } = require("../../../models/user");
 const app = require("../../../index");
-const express = require("express");
 const { Rental } = require("../../../models/rental");
 const { Product } = require("../../../models/product");
-
-app.use(express.json());
 
 let exampleUserId;
 
@@ -15,7 +12,7 @@ let exampleAdmin = {
   lastName: "adminLastName",
   email: "administrator@address.com",
   password: "adminPassword",
-  phone: "22222222"
+  phone: "22222222",
 };
 
 let exampleUser = {
@@ -23,12 +20,12 @@ let exampleUser = {
   lastName: "lastName",
   email: "exampleUser@address.com",
   password: "password",
-  phone: "11111111"
+  phone: "11111111",
 };
 
 addExampleUser = async () => {
   let user = new User({
-    ...exampleUser
+    ...exampleUser,
   });
   exampleUserId = user.id;
 
@@ -43,13 +40,13 @@ describe("/api/users", () => {
   beforeEach(async () => {
     admin = new User({
       ...exampleAdmin,
-      isAdmin: true
+      isAdmin: true,
     });
 
     validAdminJWTToken = admin.generateAuthToken();
 
     validAuthNonAdminUserJWTToken = new User({
-      ...exampleUser
+      ...exampleUser,
     }).generateAuthToken();
   });
   afterEach(async () => {
@@ -64,15 +61,15 @@ describe("/api/users", () => {
           lastName: "lastName1",
           email: "email@address1.com",
           password: "password1",
-          phone: "11111111"
+          phone: "11111111",
         },
         {
           firstName: "firstName2",
           lastName: "lastName2",
           email: "email@address2.com",
           password: "password2",
-          phone: "11111111"
-        }
+          phone: "11111111",
+        },
       ]);
 
       const res = await request(app)
@@ -81,8 +78,12 @@ describe("/api/users", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.length).toBe(2);
-      expect(res.body.some(g => g.email === "email@address1.com")).toBeTruthy();
-      expect(res.body.some(g => g.email === "email@address2.com")).toBeTruthy();
+      expect(
+        res.body.some((g) => g.email === "email@address1.com")
+      ).toBeTruthy();
+      expect(
+        res.body.some((g) => g.email === "email@address2.com")
+      ).toBeTruthy();
     });
 
     it("should return 401 if no JWT token is provided", async () => {
@@ -116,7 +117,7 @@ describe("/api/users", () => {
 
     beforeEach(async () => {
       currentUser = new User({
-        ...exampleUser
+        ...exampleUser,
       });
 
       currentUserValidJWTToken = currentUser.generateAuthToken();
@@ -244,28 +245,28 @@ describe("/api/users", () => {
         name: "ValidName",
         category: {
           _id: mongoose.Types.ObjectId(),
-          name: "categoryName"
+          name: "categoryName",
         },
         entities: [
           {
             identifier: "Ex1",
             availableForRental: true,
-            remarks: "This is a remark"
-          }
+            remarks: "This is a remark",
+          },
         ],
         numberOfLoans: 3,
         description: "This is a description",
         details: [
           {
             displayName: "detailName",
-            value: "Detail value"
-          }
-        ]
+            value: "Detail value",
+          },
+        ],
       };
 
       exampleProduct1 = new Product({
         _id: mongoose.Types.ObjectId(),
-        ...exampleProduct
+        ...exampleProduct,
       });
       exampleProduct1.entities[0].availableForRental = true;
 
@@ -313,7 +314,7 @@ describe("/api/users", () => {
       return request(app)
         .post("/api/users")
         .send({
-          ...user
+          ...user,
         });
     };
 
@@ -382,7 +383,7 @@ describe("/api/users", () => {
       return request(app)
         .put(`/api/users/${id}`)
         .send({
-          ...user
+          ...user,
         })
         .set("x-auth-token", validAdminJWTToken);
     };
