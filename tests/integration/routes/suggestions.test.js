@@ -144,7 +144,7 @@ describe("/api/suggestions", () => {
         .set("x-auth-token", currentAdminToken);
     };
 
-    it("should delete rental with given ID", async () => {
+    it("should delete suggestion with given ID", async () => {
       let allSuggestions = await request(app)
         .get("/api/suggestions")
         .set("x-auth-token", currentAdminToken);
