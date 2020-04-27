@@ -8,7 +8,13 @@ const validateObjectID = require("../middleware/validateObjectId");
 const { Suggestion } = require("../models/suggestion");
 
 router.post("/", auth, validateSuggestion, async (req, res) => {
-  const suggestion = new Suggestion(req.body);
+  const suggestion = new Suggestion({
+    suggestion: req.body.suggestion,
+    user: {
+      _id: req.user._id,
+      name: req.user.name,
+    },
+  });
   await suggestion.save();
   res.send(suggestion);
 });
