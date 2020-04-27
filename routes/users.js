@@ -128,8 +128,6 @@ router.post("/newPassword/:token", async (req, res) => {
   } catch (err) {
     res.status(401).send("Token invalid or expired!");
   }
-
-  // User.findById();
 });
 
 module.exports = router;
