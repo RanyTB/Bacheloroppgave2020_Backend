@@ -86,8 +86,10 @@ userSchema.methods.generateEmailToken = async function () {
 userSchema.methods.generatePasswordResetToken = async function () {
   const token = jwt.sign(
     {
-      _id: this._id,
-      email: this.email,
+      user: {
+        _id: this._id,
+        email: this.email,
+      },
     },
     config.get("jwtPrivateKey"),
     { expiresIn: "4h" }
