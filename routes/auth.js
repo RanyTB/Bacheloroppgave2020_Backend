@@ -47,7 +47,7 @@ router.post("/resetpassword", async (req, res) => {
   const user = await User.findOne({ email: email.toLowerCase() });
 
   if (user) {
-    const token = user.generatePasswordResetToken();
+    const token = await user.generatePasswordResetToken();
     const resetLink = `"${config.get(
       "frontendBaseURL"
     )}/resetpassword/${token}"`;
