@@ -48,9 +48,7 @@ router.post("/resetpassword", async (req, res) => {
 
   if (user) {
     const token = await user.generatePasswordResetToken();
-    const resetLink = `"${config.get(
-      "frontendBaseURL"
-    )}/resetpassword/${token}"`;
+    const resetLink = `"${config.get("frontendBaseURL")}/newPassword/${token}"`;
 
     sendEmail(
       user,
