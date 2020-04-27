@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const Joi = require("@hapi/joi");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const sendEmail = require("../services/sendEmail");
 
 router.post("/", async (req, res) => {
   const { error } = validate(req.body);
@@ -39,17 +40,36 @@ router.post("/token/:jwt", async (req, res) => {
   }
 });
 
+router.post("/resetpassword", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).send("Missing email in body!");
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  if (user) {
+    const token = user.generatePasswordResetToken();
+    const resetLink = `"${config.get(
+      "frontendBaseURL"
+    )}/resetpassword/${token}"`;
+
+    sendEmail(
+      user,
+      "Reset your password here",
+      `<h1>Reset your password</h1>
+    <p>To reset your password, please click the link below:</p>
+    <a href=${resetLink}>Reset password</a>`
+    );
+  }
+
+  res.send(
+    "An email with password reset instructions have been sent if email exists."
+  );
+});
+
 function validate(req) {
   const schema = Joi.object({
-    email: Joi.string()
-      .required()
-      .email()
-      .min(14)
-      .max(255),
-    password: Joi.string()
-      .min(8)
-      .max(255)
-      .required()
+    email: Joi.string().required().email().min(14).max(255),
+    password: Joi.string().min(8).max(255).required(),
   });
   return schema.validate(req);
 }

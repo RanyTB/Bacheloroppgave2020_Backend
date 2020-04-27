@@ -13,6 +13,26 @@ tags:
   - name: Rentals
 
 paths:
+  /auth/resetpassword:
+    post:
+      tags:
+        - Auth
+      description: Use to request a password reset link to email
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "John@email.com"
+      responses:
+        "200":
+          description: Email has been sent if the user was found in database.
+        "400":
+          description: "Email missing in request body"
+
   /categories/{id}:
     get:
       tags:
