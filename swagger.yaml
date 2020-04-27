@@ -312,6 +312,7 @@ paths:
                 $ref: "#/components/schemas/User"
         400:
           description: Invalid email or password, or user is already registered
+
   /users/{userId}/rentals:
     get:
       tags:
@@ -337,6 +338,37 @@ paths:
                   oneOf:
                     - $ref: "#/components/schemas/Rental"
                     - $ref: "#/components/schemas/RequestedRental"
+
+  /users/newPassword/{token}:
+    post:
+      tags:
+        - Users
+      description: Use to change user password
+      summary: Changes user password
+      parameters:
+        - in: path
+          name: token
+          required: true
+          description: JWT token for password reset
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Password was reset successfully
+        "400":
+          description: Missing password in request body!
+        "401":
+          description: Token expired or invalid
 
   /rentals/{id}:
     delete:

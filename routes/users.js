@@ -10,6 +10,7 @@ const admin = require("../middleware/admin");
 const sendEmail = require("../services/sendEmail");
 const { Rental } = require("../models/rental");
 const config = require("config");
+const jwt = require("jsonwebtoken");
 
 router.get("/", auth, admin, async (req, res) => {
   const users = await User.find();
@@ -37,7 +38,7 @@ router.get("/:id/rentals", auth, async (req, res) => {
     const rentals = await Rental.find({
       "user._id": req.params.id,
       dateOut: { $exists: false },
-      dateReturned: { $exists: false }
+      dateReturned: { $exists: false },
     });
     return res.send(rentals);
   }
@@ -95,7 +96,7 @@ router.put(
         "email",
         "password",
         "phone",
-        "isAdmin"
+        "isAdmin",
       ]),
       { new: true, useFindAndModify: false, runValidators: true }
     );
@@ -105,5 +106,30 @@ router.put(
     res.send(user);
   }
 );
+
+router.post("/newPassword/:token", async (req, res) => {
+  const token = req.params.token;
+
+  const password = req.body.password;
+  if (!password)
+    return res.status(400).send("Missing password in request body!");
+
+  try {
+    const decoded = jwt.verify(token, config.get("jwtPrivateKey"));
+
+    const user = await User.findById(decoded.user._id);
+    if (!user) return res.status(404).send("User not found!");
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    await user.save();
+    res.send("Password has been reset!");
+  } catch (err) {
+    res.status(401).send("Token invalid or expired!");
+  }
+
+  // User.findById();
+});
 
 module.exports = router;
