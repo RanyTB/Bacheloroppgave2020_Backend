@@ -5,28 +5,12 @@ const config = require("config");
 
 function validateUser(user) {
   const schema = Joi.object({
-    firstName: Joi.string()
-      .required()
-      .min(1)
-      .max(255),
-    lastName: Joi.string()
-      .required()
-      .min(3)
-      .max(255),
-    email: Joi.string()
-      .required()
-      .email()
-      .min(14)
-      .max(255),
-    password: Joi.string()
-      .min(8)
-      .max(255)
-      .required(),
-    phone: Joi.string()
-      .min(8)
-      .max(16)
-      .required(),
-    isAdmin: Joi.bool()
+    firstName: Joi.string().required().min(1).max(255),
+    lastName: Joi.string().required().min(3).max(255),
+    email: Joi.string().required().email().min(14).max(255),
+    password: Joi.string().min(8).max(255).required(),
+    phone: Joi.string().min(8).max(16).required(),
+    isAdmin: Joi.bool(),
   });
   return schema.validate(user);
 }
@@ -36,49 +20,49 @@ const userSchema = new mongoose.Schema({
     type: String,
     minlength: 1,
     maxlength: 255,
-    required: true
+    required: true,
   },
   lastName: {
     type: String,
     minlength: 1,
     maxlength: 255,
-    required: true
+    required: true,
   },
   email: {
     type: String,
     minlength: 14,
     maxlength: 255,
     unique: true,
-    required: true
+    required: true,
   },
   password: {
     type: String,
-    required: true
+    required: true,
   },
   phone: {
     type: String,
     minlength: 8,
     maxlength: 16,
-    required: true
+    required: true,
   },
   isAdmin: {
     type: Boolean,
     default: false,
-    required: true
+    required: true,
   },
   isActive: {
     type: Boolean,
     default: false,
-    required: true
-  }
+    required: true,
+  },
 });
 
-userSchema.methods.generateAuthToken = function() {
+userSchema.methods.generateAuthToken = function () {
   const token = jwt.sign(
     {
       _id: this._id,
       name: this.firstName + " " + this.lastName,
-      isAdmin: this.isAdmin
+      isAdmin: this.isAdmin,
     },
     config.get("jwtPrivateKey"),
     { expiresIn: "1d" }
@@ -87,13 +71,26 @@ userSchema.methods.generateAuthToken = function() {
   return token;
 };
 
-userSchema.methods.generateEmailToken = async function() {
+userSchema.methods.generateEmailToken = async function () {
   const token = jwt.sign(
     {
       _id: this._id,
-      email: this.email
+      email: this.email,
     },
     config.get("jwtPrivateKey")
+  );
+
+  return token;
+};
+
+userSchema.methods.generatePasswordResetToken = async function () {
+  const token = jwt.sign(
+    {
+      _id: this._id,
+      email: this.email,
+    },
+    config.get("jwtPrivateKey"),
+    { expiresIn: "4h" }
   );
 
   return token;
