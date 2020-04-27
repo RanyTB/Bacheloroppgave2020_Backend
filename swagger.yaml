@@ -11,6 +11,7 @@ tags:
   - name: Auth
   - name: Users
   - name: Rentals
+  - name: Suggestions
 
 paths:
   /categories/{id}:
@@ -385,6 +386,51 @@ paths:
           description: Rental with given ID not found
         "500":
           description: ID of user in rental body does not exist in user collection in database.
+
+  /suggestions:
+    get:
+      tags:
+        - Suggestions
+      summary: Get Suggestions
+      description: Get all suggestions
+      responses:
+        "200":
+          description: Returns all suggestions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/Suggestion"
+    delete:
+      tags:
+        - Suggestions
+      summary: Delete suggestion
+      description: Delete a suggestion with the given ID
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      responses:
+        "200":
+          description: Return deleted suggestion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestion"
+    post:
+      tags:
+        - Suggestions
+      summary: Create a new suggestion
+      description: Create a new suggestion using the given request body
+      requestBody:
+        $ref: "#/components/requestBodies/Suggestion"
+      responses:
+        "200":
+          description: Returns the created suggestion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestion"
 
   /rentals:
     get:
@@ -803,6 +849,26 @@ components:
           type: string
           format: date-time
           example: 2020-01-01T17:32:28Z
+
+    Suggestion:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        suggestion:
+          type: string
+          example: Get Playstation 6
+        user:
+          type: object
+          properties:
+            _id:
+              type: string
+              example:
+            name:
+              type: string
+              example: 5e6106c3b3817f3a88be0860
+
     UnprocessedReturn:
       type: object
       properties:
@@ -976,6 +1042,18 @@ components:
               productId:
                 type: string
                 example: 5e539c042f9afe16e09ca244
+
+    Suggestion:
+      description: A JSON object containing the suggestion
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              suggestion:
+                type: string
+                example: "Buy playstation 6"
 
   parameters:
     ObjectId:
