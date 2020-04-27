@@ -45,8 +45,14 @@ describe("/api/suggestions", () => {
     };
 
     it("should return all suggestions ", async () => {
-      let suggestion1 = new Suggestion({ name: "name1", ...exampleSuggestion });
-      let suggestion2 = new Suggestion({ name: "name2", ...exampleSuggestion });
+      let suggestion1 = new Suggestion({
+        user: { name: "name1" },
+        ...exampleSuggestion,
+      });
+      let suggestion2 = new Suggestion({
+        user: { name: "name2" },
+        ...exampleSuggestion,
+      });
 
       await suggestion1.save();
       await suggestion2.save();
@@ -131,8 +137,8 @@ describe("/api/suggestions", () => {
     beforeEach(async () => {
       currentAdminToken = adminToken;
       const suggestion = new Suggestion({
-        name: "name",
-        suggestion: "buy playstation 5",
+        user: { name: "name1" },
+        ...exampleSuggestion,
       });
       await suggestion.save();
       suggestionId = suggestion._id;
