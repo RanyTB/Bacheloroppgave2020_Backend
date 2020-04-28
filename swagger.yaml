@@ -13,6 +13,24 @@ tags:
   - name: Rentals
 
 paths:
+  /users/me:
+    patch:
+      tags:
+        - Users
+      summary: updates logged in user
+      description: Use to updated the logged in user
+      requestBody:
+        $ref: "#/components/requestBodies/UserUpdate"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdatedUser"
+        "404":
+          description: User not found
+
   /auth/resetpassword:
     post:
       tags:
@@ -717,6 +735,21 @@ components:
         phone:
           type: string
           example: "48927401"
+    UpdatedUser:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        firstName:
+          type: string
+          example: Josh
+        lastName:
+          type: string
+          example: Johnson
+        phone:
+          type: string
+          example: "48927401"
     Rental:
       type: object
       properties:
@@ -980,6 +1013,23 @@ components:
                   example:
                     displayName: Maximum players
                     value: "4"
+    UserUpdate:
+      description: A JSON object containing user info to be updated
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              firstName:
+                type: string
+                example: Josh
+              lastName:
+                type: string
+                example: Johnson
+              phone:
+                type: string
+                example: "48927401"
     User:
       description: A JSON object containing user
       required: true

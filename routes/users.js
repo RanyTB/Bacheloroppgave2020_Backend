@@ -22,6 +22,23 @@ router.get("/me", auth, async (req, res) => {
   res.send(user);
 });
 
+router.patch("/me", auth, validateObjectID, async (req, res) => {
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    _.pick(req.body, ["firstName", "lastName", "phone"]),
+    {
+      new: true,
+      useFindAndModify: false,
+      runValidators: true,
+      fields: { firstName: 1, lastName: 1, phone: 1 },
+    }
+  );
+
+  if (!user) return res.status(404).send("User was not found");
+
+  res.send(user);
+});
+
 router.get("/:id", auth, admin, validateObjectID, async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).send(`User ${req.params.id}`);
