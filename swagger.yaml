@@ -417,6 +417,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Suggestion"
+        "400":
+          description: Invalid mongoose ID
+        "404":
+          description: The suggestion with the given ID doesn't exist
     post:
       tags:
         - Suggestions
@@ -431,6 +435,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Suggestion"
+        "400":
+          description: The suggestion in the request body is invalid
 
   /rentals:
     get:
