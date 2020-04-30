@@ -11,6 +11,7 @@ function validateUser(user) {
     password: Joi.string().min(8).max(255).required(),
     phone: Joi.string().min(8).max(16).required(),
     isAdmin: Joi.bool(),
+    isActive: Joi.bool(),
   });
   return schema.validate(user);
 }
