@@ -114,6 +114,7 @@ router.put(
         "password",
         "phone",
         "isAdmin",
+        "isActive",
       ]),
       { new: true, useFindAndModify: false, runValidators: true }
     );
