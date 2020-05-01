@@ -8,17 +8,20 @@ let exampleAuthUser = {
   lastName: "lastName1",
   email: "administratorTest@address1.com",
   password: "12345678",
-  phone: "11111111"
+  phone: "11111111",
 };
 
 let authUser;
 
 describe("api/auth", () => {
+  afterEach(async () => {
+    await User.deleteMany({});
+  });
+
   describe("POST /", () => {
     beforeEach(async () => {});
 
     afterEach(async () => {
-      await User.deleteMany({});
       authUser = { ...exampleAuthUser };
       isActive = true;
     });
@@ -32,7 +35,7 @@ describe("api/auth", () => {
         .send({ ...exampleAuthUser });
 
       const user = await User.findOne({
-        email: exampleAuthUser.email.toLowerCase()
+        email: exampleAuthUser.email.toLowerCase(),
       });
 
       if (user) {
@@ -40,12 +43,10 @@ describe("api/auth", () => {
         await user.save();
       }
 
-      return await request(server)
-        .post("/api/auth")
-        .send({
-          email: authUser.email,
-          password: authUser.password
-        });
+      return await request(server).post("/api/auth").send({
+        email: authUser.email,
+        password: authUser.password,
+      });
     };
 
     it("should return a JWT token if email and password is correct", async () => {
@@ -86,10 +87,6 @@ describe("api/auth", () => {
   });
 
   describe("POST /token/:jwt", () => {
-    afterEach(async () => {
-      await User.deleteMany({});
-    });
-
     it("should return 400 if token is invalid", async () => {
       const res = await request(server).post("/api/auth/token/invalidToken");
 
@@ -106,6 +103,26 @@ describe("api/auth", () => {
       const res = await request(server).post(`/api/auth/token/${emailToken}`);
 
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe("POST /auth/resetpassword", () => {
+    beforeEach(async () => {
+      const user = new User({ ...exampleAuthUser });
+      await user.save();
+    });
+
+    it("should return 200", async () => {
+      const res = await request(server)
+        .post("/api/auth/resetpassword")
+        .send({ email: exampleAuthUser.email });
+
+      expect(res.status).toBe(200);
+    });
+
+    it("should return 400 when email is not given", async () => {
+      const res = await request(server).post("/api/auth/resetpassword");
+      expect(res.status).toBe(400);
     });
   });
 });

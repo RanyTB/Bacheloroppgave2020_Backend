@@ -12,8 +12,48 @@ tags:
   - name: Users
   - name: Rentals
   - name: Suggestions
+  - name: Service-Messages
+
 
 paths:
+  /users/me:
+    patch:
+      tags:
+        - Users
+      summary: updates logged in user
+      description: Use to updated the logged in user
+      requestBody:
+        $ref: "#/components/requestBodies/UserUpdate"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdatedUser"
+        "404":
+          description: User not found
+
+  /auth/resetpassword:
+    post:
+      tags:
+        - Auth
+      description: Use to request a password reset link to email
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "John@email.com"
+      responses:
+        "200":
+          description: Email has been sent if the user was found in database.
+        "400":
+          description: "Email missing in request body"
+
   /categories/{id}:
     get:
       tags:
@@ -293,6 +333,7 @@ paths:
                 $ref: "#/components/schemas/User"
         400:
           description: Invalid email or password, or user is already registered
+
   /users/{userId}/rentals:
     get:
       tags:
@@ -318,6 +359,37 @@ paths:
                   oneOf:
                     - $ref: "#/components/schemas/Rental"
                     - $ref: "#/components/schemas/RequestedRental"
+
+  /users/newPassword/{token}:
+    post:
+      tags:
+        - Users
+      description: Use to change user password
+      summary: Changes user password
+      parameters:
+        - in: path
+          name: token
+          required: true
+          description: JWT token for password reset
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Password was reset successfully
+        "400":
+          description: Missing password in request body!
+        "401":
+          description: Token expired or invalid
 
   /rentals/{id}:
     delete:
@@ -616,6 +688,60 @@ paths:
         "404":
           description: Rental with given ID not found.
 
+  /service-messages:
+    get:
+      tags:
+        - Service-Messages
+      summary: Get service messages
+      description: Get all service messages
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/ServiceMessage"
+    post:
+      tags:
+        - Service-Messages
+      summary: Create a new service message
+      description: Create a new service message with the given request body
+      requestBody:
+        $ref: "#/components/requestBodies/ServiceMessage"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/ServiceMessage"
+        "400":
+          content: Service message is missing
+
+  /service-messages/{id}:
+    delete:
+      tags:
+        - Service-Messages
+      summary: Delete service message
+      description: Delete s service message with the given ID
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      responses:
+        "200":
+          description: Return delete service message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceMessage"
+        "400":
+          description: Invalid ID. The ID must be a valid MongoDB ID.
+        "404":
+          description: Service message was not found
+
 components:
   schemas:
     Category:
@@ -714,6 +840,21 @@ components:
         password:
           type: string
           example: $2b$10$wCQyTwO/9XqjSwCOK3lFgevZlAYVSCWr6VJYzgha2zBCWk3X9uUkC
+        phone:
+          type: string
+          example: "48927401"
+    UpdatedUser:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        firstName:
+          type: string
+          example: Josh
+        lastName:
+          type: string
+          example: Johnson
         phone:
           type: string
           example: "48927401"
@@ -932,6 +1073,16 @@ components:
           type: string
           example: "Power cable was damaged under use"
 
+    ServiceMessage:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        serviceMessage:
+          type: string
+          example: "The site will be down Sunday 23/06 due to maintenance"
+
   requestBodies:
     Category:
       description: A JSON object containing category information. **Parent field is optional**
@@ -1000,6 +1151,23 @@ components:
                   example:
                     displayName: Maximum players
                     value: "4"
+    UserUpdate:
+      description: A JSON object containing user info to be updated
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              firstName:
+                type: string
+                example: Josh
+              lastName:
+                type: string
+                example: Johnson
+              phone:
+                type: string
+                example: "48927401"
     User:
       description: A JSON object containing user
       required: true
@@ -1054,13 +1222,24 @@ components:
       required: true
       content:
         application/json:
+          schema: type: object
+          properties:
+            suggestion:
+                type: string
+                example: "Buy playstation 6"
+                
+    ServiceMessage:
+      description: A JSON object containing the serviceMessage
+      required: true
+      content:
+        application/json:
           schema:
             type: object
             properties:
-              suggestion:
+              serviceMessage:
                 type: string
-                example: "Buy playstation 6"
-
+                example: "The site will be down friday 23/06 due to maintenance"
+           
   parameters:
     ObjectId:
       name: id

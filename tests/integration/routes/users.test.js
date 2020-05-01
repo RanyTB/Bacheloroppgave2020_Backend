@@ -4,6 +4,7 @@ const { User } = require("../../../models/user");
 const app = require("../../../index");
 const { Rental } = require("../../../models/rental");
 const { Product } = require("../../../models/product");
+const bcrypt = require("bcrypt");
 
 let exampleUserId;
 
@@ -477,6 +478,49 @@ describe("/api/users", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty("_id");
+    });
+  });
+
+  describe("POST /newPassword/:token", async () => {
+    let token;
+    let newPassword;
+
+    beforeEach(async () => {
+      newPassword = "newValidPassword123";
+
+      await addExampleUser();
+      const user = await User.findById(exampleUserId);
+      token = await user.generatePasswordResetToken();
+    });
+
+    //happy path
+    const exec = () => {
+      return request(app)
+        .post(`/api/users/newPassword/${token}`)
+        .send({ password: newPassword });
+    };
+
+    it("Should change users password", async () => {
+      await exec();
+
+      const user = await User.findById(exampleUserId);
+      const validPassword = await bcrypt.compare(newPassword, user.password);
+
+      expect(validPassword).toBeTruthy();
+    });
+
+    it("Should return 400 when new password is missing", async () => {
+      newPassword = "";
+      const res = await exec();
+
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 401 when token is invalid", async () => {
+      token = "invalidToken";
+      const res = await exec();
+
+      expect(res.status).toBe(401);
     });
   });
 });
