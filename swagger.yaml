@@ -14,7 +14,6 @@ tags:
   - name: Suggestions
   - name: Service-Messages
 
-
 paths:
   /users/me:
     patch:
@@ -696,6 +695,7 @@ paths:
       description: Get all service messages
       responses:
         "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -712,6 +712,7 @@ paths:
         $ref: "#/components/requestBodies/ServiceMessage"
       responses:
         "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -720,7 +721,7 @@ paths:
                   oneOf:
                     - $ref: "#/components/schemas/ServiceMessage"
         "400":
-          content: Service message is missing
+          description: Service message is missing
 
   /service-messages/{id}:
     delete:
@@ -1222,12 +1223,13 @@ components:
       required: true
       content:
         application/json:
-          schema: type: object
-          properties:
-            suggestion:
+          schema:
+            type: object
+            properties:
+              suggestion:
                 type: string
                 example: "Buy playstation 6"
-                
+
     ServiceMessage:
       description: A JSON object containing the serviceMessage
       required: true
@@ -1239,7 +1241,7 @@ components:
               serviceMessage:
                 type: string
                 example: "The site will be down friday 23/06 due to maintenance"
-           
+
   parameters:
     ObjectId:
       name: id
