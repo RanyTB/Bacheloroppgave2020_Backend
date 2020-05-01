@@ -11,6 +11,7 @@ tags:
   - name: Auth
   - name: Users
   - name: Rentals
+  - name: Service-Messages
 
 paths:
   /users/me:
@@ -634,6 +635,60 @@ paths:
         "404":
           description: Rental with given ID not found.
 
+  /service-messages:
+    get:
+      tags:
+        - Service-Messages
+      summary: Get service messages
+      description: Get all service messages
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/ServiceMessage"
+    post:
+      tags:
+        - Service-Messages
+      summary: Create a new service message
+      description: Create a new service message with the given request body
+      requestBody:
+        $ref: "#/components/requestBodies/ServiceMessage"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/ServiceMessage"
+        "400":
+          content: Service message is missing
+
+  /service-messages/{id}:
+    delete:
+      tags:
+        - Service-Messages
+      summary: Delete service message
+      description: Delete s service message with the given ID
+      parameters:
+        - $ref: "#/components/parameters/ObjectId"
+      responses:
+        "200":
+          description: Return delete service message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceMessage"
+        "400":
+          description: Invalid ID. The ID must be a valid MongoDB ID.
+        "404":
+          description: Service message was not found
+
 components:
   schemas:
     Category:
@@ -945,6 +1000,16 @@ components:
           type: string
           example: "Power cable was damaged under use"
 
+    ServiceMessage:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 5e6106c3b3817f3a88be0860
+        serviceMessage:
+          type: string
+          example: "The site will be down Sunday 23/06 due to maintenance"
+
   requestBodies:
     Category:
       description: A JSON object containing category information. **Parent field is optional**
@@ -1079,6 +1144,17 @@ components:
                 type: string
                 example: 5e539c042f9afe16e09ca244
 
+    ServiceMessage:
+      description: A JSON object containing the serviceMessage
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              serviceMessage:
+                type: string
+                example: "The site will be down friday 23/06 due to maintenance"
   parameters:
     ObjectId:
       name: id
