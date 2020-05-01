@@ -8,7 +8,9 @@ const categories = require("../routes/categories");
 const rentals = require("../routes/rentals");
 const error = require("../middleware/error");
 const auth = require("../routes/auth");
+const suggestions = require("../routes/suggestions");
 const serviceMessage = require("../routes/serviceMessages");
+
 
 module.exports = function (app) {
   app.use(express.json());
@@ -22,6 +24,8 @@ module.exports = function (app) {
   app.use("/api/auth", auth);
   app.use("/api/categories", categories);
   app.use("/api/rentals", rentals);
+  app.use("/api/suggestions", suggestions);
   app.use("/api/service-messages", serviceMessage);
+
   app.use(error);
 };

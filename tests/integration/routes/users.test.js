@@ -2,12 +2,9 @@ const request = require("supertest");
 const mongoose = require("mongoose");
 const { User } = require("../../../models/user");
 const app = require("../../../index");
-const express = require("express");
 const { Rental } = require("../../../models/rental");
 const { Product } = require("../../../models/product");
 const bcrypt = require("bcrypt");
-
-app.use(express.json());
 
 let exampleUserId;
 
