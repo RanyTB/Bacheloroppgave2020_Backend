@@ -1,15 +1,17 @@
 const nodemailer = require("nodemailer");
+const config = require("config");
 
 module.exports = async (user, subject, message) => {
+  const mailServer = config.get("mailServer");
+
   let transporter = nodemailer.createTransport({
-    host: "smtp.sendgrid.net",
+    host: mailServer.host,
     port: 465,
     secure: true, // true for 465, false for other ports
     auth: {
-      user: "apikey",
-      pass:
-        "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"
-    }
+      user: mailServer.user,
+      pass: mailServer.pass,
+    },
   });
 
   await transporter.sendMail({
@@ -17,6 +19,6 @@ module.exports = async (user, subject, message) => {
     to: user.email,
     subject,
     text: ``,
-    html: message
+    html: message,
   });
 };
