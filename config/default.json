@@ -3,5 +3,10 @@
   "frontendBaseURL": "http://localhost:3000",
   "jwtPrivateKey": "developement",
   "requiresAuth": true,
-  "requiresAccentureEmail": false
+  "requiresAccentureEmail": false,
+  "mailServer": {
+    "host": "smtp.sendgrid.net",
+    "user": "apikey",
+    "pass": "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"
+  }
 }
