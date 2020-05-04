@@ -115,14 +115,12 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
       );
   }
 
-  if (process.env.NODE_ENV !== "test") {
-    sendEmail(
-      user,
-      "Your rental has been approved",
-      `Hello ${user.firstName},<br><br>Your rental request for ${rental.product.name} has been approved.
+  sendEmail(
+    user,
+    "Your rental has been approved",
+    `Hello ${user.firstName},<br><br>Your rental request for ${rental.product.name} has been approved.
       <br><br>Pick up instructions: ${rental.pickUpInstructions}<br>return instructions: ${rental.returnInstructions}`
-    );
-  }
+  );
 
   let notifyDate = new Date();
   notifyDate.setDate(dateToReturn.getDate() - 1);
@@ -130,7 +128,7 @@ router.patch("/:id", auth, admin, validateObjectId, async (req, res) => {
   var j = schedule.scheduleJob(notifyDate, async () => {
     const user = await User.findById(rental.user._id);
     const rental = await Rental.findById(req.params.id);
-    if (!rental.confirmedReturned && process.env.NODE_ENV !== "test") {
+    if (!rental.confirmedReturned) {
       sendEmail(
         user,
         `You have one day left to return the ${rental.product.name} you borrowed`,

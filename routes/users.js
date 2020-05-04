@@ -79,14 +79,13 @@ router.post("/", validateUser, async (req, res) => {
 
   const token = await user.generateEmailToken();
 
-  if (process.env.NODE_ENV !== "test")
-    sendEmail(
-      user,
-      "Please verify your email address",
-      `Click the following link to verify your email address ${config.get(
-        "frontendBaseURL"
-      )}/verify-email/${token}`
-    );
+  sendEmail(
+    user,
+    "Please verify your email address",
+    `Click the following link to verify your email address ${config.get(
+      "frontendBaseURL"
+    )}/verify-email/${token}`
+  );
 
   return res.send(
     _.pick(user, ["_id", "firstName", "lastName", "email", "phone"])
