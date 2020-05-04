@@ -76,8 +76,6 @@ rentalSchema.methods.confirmRental = function (
 
   this.pickUpInstructions = pickUpInstructions;
   this.returnInstructions = returnInstructions;
-
-  //Set product.availableForRental to false here.
 };
 
 rentalSchema.methods.markAsReturned = function (remarks) {
