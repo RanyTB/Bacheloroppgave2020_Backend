@@ -3,15 +3,17 @@ const bcrypt = require("bcrypt");
 const config = require("config");
 const mongoose = require("mongoose");
 
+const email = "admin@admin.com";
+const password = "defaultAccentureAdmin";
+
 const insertUser = async () => {
   const salt = await bcrypt.genSalt(10);
-  const password = "admin";
   const hashedPassword = await bcrypt.hash(password, salt);
 
   const adminUser = new User({
     firstName: "Default",
     lastName: "Admin",
-    email: "defaultAdmin@admin.com",
+    email,
     password: hashedPassword,
     phone: "98765432",
     isAdmin: true,
@@ -21,17 +23,22 @@ const insertUser = async () => {
   return adminUser.save();
 };
 
+const removeUser = async () => {
+  return User.deleteMany({ email });
+};
+
 async function seed() {
   await mongoose.connect(config.get("DB_URI"), {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
 
+  await removeUser();
   await insertUser();
   await mongoose.disconnect();
 }
 
-console.log("Inserting user");
+console.log("Inserting admin user");
 seed()
   .then(() => console.log("Done"))
   .catch((ex) => console.log("Failed: ", ex));
