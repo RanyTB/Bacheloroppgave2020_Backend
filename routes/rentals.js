@@ -14,6 +14,8 @@ const validateObjectId = require("../middleware/validateObjectId");
 const sendEmail = require("../services/sendEmail");
 const { User } = require("../models/user");
 const schedule = require("node-schedule");
+const notifyAdmins = require("../services/notifyAdmins");
+const config = require("config");
 
 //gets either requested rentals or all rentals
 router.get("/", auth, admin, async (req, res) => {
@@ -73,6 +75,15 @@ router.post("/", auth, validateRental, async (req, res) => {
 
   entity.availableForRental = false;
   product.numberOfLoans++;
+
+  await notifyAdmins(
+    "New rental requested",
+    `<p>New rental was requested by ${
+      req.user.name
+    }</p> <p>Manage rentals <a href="${config.get(
+      "frontendBaseURL"
+    )}/admin/rentals">here</a></p>`
+  );
 
   const task = Fawn.Task();
   task.save("rentals", rental);
