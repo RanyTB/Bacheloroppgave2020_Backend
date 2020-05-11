@@ -225,18 +225,16 @@ router.delete("/:id", auth, admin, validateObjectId, async (req, res) => {
       );
   }
 
-  if (process.env.NODE_ENV !== "test") {
-    sendEmail(
-      user,
-      "Your rental has been rejected",
-      `Hello ${user.firstName},<br><br>Your rental request for ${
-        rental.product.name
-      } has been rejected.
+  sendEmail(
+    user,
+    "Your rental has been rejected",
+    `Hello ${user.firstName},<br><br>Your rental request for ${
+      rental.product.name
+    } has been rejected.
       <br><br>${
         req.body.deleteReason ? `Reason: ${req.body.deleteReason}` : ""
       }`
-    );
-  }
+  );
 
   return res.send(rental);
 });
