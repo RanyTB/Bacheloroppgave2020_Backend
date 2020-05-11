@@ -1,3 +1,9 @@
 {
-  "jwtPrivateKey": "borrowMyTech_jwtPrivateKey"
+  "jwtPrivateKey": "borrowMyTech_jwtPrivateKey",
+  "frontendBaseURL": "borrowMyTech_frontEndBaseURL",
+  "mailServer": {
+    "host": "borrowMyTech_mailServer_host",
+    "user": "borrowMyTech_mailServer_user",
+    "pass": "borrowMyTech_mailServer_pass"
+  }
 }
