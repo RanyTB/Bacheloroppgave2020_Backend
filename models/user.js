@@ -2,6 +2,7 @@ const Joi = require("@hapi/joi");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const passwordComplexity = require("joi-password-complexity");
 
 function validateUser(user) {
   const schema = Joi.object({
@@ -14,6 +15,21 @@ function validateUser(user) {
     isActive: Joi.bool(),
   });
   return schema.validate(user);
+}
+
+const passwordComplexityOptions = {
+  min: 8,
+  max: 255,
+  lowerCase: 1,
+  upperCase: 1,
+  numeric: 1,
+  symbol: 0,
+};
+
+function validatePassword({ password }) {
+  return passwordComplexity(passwordComplexityOptions, "Password").validate(
+    password
+  );
 }
 
 const userSchema = new mongoose.Schema({
@@ -103,3 +119,4 @@ const User = mongoose.model("user", userSchema);
 
 module.exports.validateUser = validateUser;
 module.exports.User = User;
+module.exports.validatePassword = validatePassword;

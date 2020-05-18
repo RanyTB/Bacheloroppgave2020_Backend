@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const validateObjectID = require("../middleware/validateObjectId");
 const validateUser = require("../middleware/validateUser");
+const validatePassword = require("../middleware/validatePassword");
 const _ = require("lodash");
 const { User } = require("../models/user");
 const bcrypt = require("bcrypt");
@@ -63,7 +64,7 @@ router.get("/:id/rentals", auth, async (req, res) => {
   const rentals = await Rental.find({ "user._id": req.params.id });
   res.send(rentals);
 });
-router.post("/", validateUser, async (req, res) => {
+router.post("/", validateUser, validatePassword, async (req, res) => {
   let user = await User.findOne({ email: req.body.email.toLowerCase() });
   if (user) return res.status(400).send("User is already registered");
 
