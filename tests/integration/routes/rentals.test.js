@@ -557,8 +557,25 @@ describe("/api/rentals", () => {
     });
 
     it("should delete rental with given ID", async () => {
+      await Rental.deleteMany({});
+
+      exampleProduct1 = new Product({
+        _id: exampleId1,
+        ...exampleProduct,
+      });
+      exampleProduct1.entities[0].availableForRental = true;
+
+      await exampleProduct1.save();
+
+      const rentalResponse = await request(app)
+        .post("/api/rentals")
+        .send({
+          productId: exampleProduct1._id,
+        })
+        .set("x-auth-token", validAdminToken);
+
       const res = await request(app)
-        .delete(`/api/rentals/${rentalId}`)
+        .delete(`/api/rentals/${rentalResponse.body._id}`)
         .set("x-auth-token", JWTToken);
       const allRentals = await request(app)
         .get("/api/rentals")

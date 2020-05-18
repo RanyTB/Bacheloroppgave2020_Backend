@@ -203,9 +203,16 @@ router.patch(
 
 router.delete("/:id", auth, admin, validateObjectId, async (req, res) => {
   const rental = await Rental.findByIdAndDelete(req.params.id);
+
   if (!rental) return res.status(404).send("Cannot find rental with given ID");
 
   const product = await Product.findById(rental.product._id);
+  if (!product) {
+    return res
+      .status(500)
+      .send("productID does not exist or database is down!");
+  }
+
   const entity = product.entities.find((entity) => {
     return entity._id.toString() === rental.product.entity._id.toString();
   });
