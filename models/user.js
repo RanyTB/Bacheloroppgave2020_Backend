@@ -8,7 +8,7 @@ function validateUser(user) {
   const schema = Joi.object({
     firstName: Joi.string().required().min(1).max(255),
     lastName: Joi.string().required().min(3).max(255),
-    email: Joi.string().required().email().min(14).max(255),
+    email: validateEmail(),
     password: Joi.string().min(8).max(255).required(),
     phone: Joi.string().min(8).max(16).required(),
     isAdmin: Joi.bool(),
@@ -16,7 +16,6 @@ function validateUser(user) {
   });
   return schema.validate(user);
 }
-
 const passwordComplexityOptions = {
   min: 8,
   max: 255,
@@ -30,6 +29,18 @@ function validatePassword({ password }) {
   return passwordComplexity(passwordComplexityOptions, "Password").validate(
     password
   );
+}
+function validateEmail() {
+  if (config.get("requiresAccentureEmail")) {
+    return Joi.string()
+      .required()
+      .email()
+      .min(14)
+      .max(255)
+      .regex(/@accenture\.com$/);
+  } else {
+    return Joi.string().required().email().min(14).max(255);
+  }
 }
 
 const userSchema = new mongoose.Schema({
