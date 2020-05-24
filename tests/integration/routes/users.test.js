@@ -481,7 +481,7 @@ describe("/api/users", () => {
     });
   });
 
-  describe("POST /newPassword/:token", async () => {
+  describe("POST /newPassword/:token", () => {
     let token;
     let newPassword;
 
