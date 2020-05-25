@@ -331,7 +331,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
         400:
-          description: Invalid email or password, or user is already registered
+          description: Invalid email, ivalid password, user already registered, first name missing, last name missing, phone missing.
 
   /users/{userId}/rentals:
     get:
