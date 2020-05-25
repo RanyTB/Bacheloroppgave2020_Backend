@@ -12,7 +12,7 @@ let exampleAdmin = {
   firstName: "adminFirstName",
   lastName: "adminLastName",
   email: "administrator@address.com",
-  password: "adminPassword",
+  password: "adminPassword12",
   phone: "22222222",
 };
 
@@ -20,7 +20,7 @@ let exampleUser = {
   firstName: "firstName",
   lastName: "lastName",
   email: "exampleUser@address.com",
-  password: "password",
+  password: "Password123",
   phone: "11111111",
 };
 
@@ -61,14 +61,14 @@ describe("/api/users", () => {
           firstName: "firstName1",
           lastName: "lastName1",
           email: "email@address1.com",
-          password: "password1",
+          password: "Password1",
           phone: "11111111",
         },
         {
           firstName: "firstName2",
           lastName: "lastName2",
           email: "email@address2.com",
-          password: "password2",
+          password: "Password2",
           phone: "11111111",
         },
       ]);
