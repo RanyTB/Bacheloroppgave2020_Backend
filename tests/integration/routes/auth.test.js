@@ -7,7 +7,7 @@ let exampleAuthUser = {
   firstName: "firstName1",
   lastName: "lastName1",
   email: "administratorTest@address1.com",
-  password: "12345678",
+  password: "Pw12345678",
   phone: "11111111",
 };
 
