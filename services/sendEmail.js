@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 const config = require("config");
 
 module.exports = async (user, subject, message) => {
-  if (process.env.NOVE_ENV !== "test") {
+  if (process.env.NODE_ENV !== "test") {
     const mailServer = config.get("mailServer");
 
     let transporter = nodemailer.createTransport({
